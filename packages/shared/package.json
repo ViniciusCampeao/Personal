@@ -1,0 +1,27 @@
+{
+  "name": "@pt/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.14",
+    "@types/node": "22.19.2",
+    "jest": "29.7.0",
+    "ts-jest": "29.4.12",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  }
+}

@@ -1,0 +1,130 @@
+# Full stack as it runs on the VPS. Nothing is published to 0.0.0.0: the only public
+# entrypoint is the `web` container, which cloudflared points at (see README).
+#
+#   docker compose up -d --build
+#
+name: personal-trainer
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-personal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-personal}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-personal} -d ${POSTGRES_DB:-personal}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    # Pinned to the last release that still ships the full web console; newer community
+    # builds dropped it. Bump deliberately, not automatically.
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      # Presigned URLs are signed for this host, so it must be the address the browser
+      # actually reaches (a dedicated tunnel hostname in production).
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_CONSOLE_URL:-http://localhost:9001}
+    volumes:
+      - minio-data:/data
+    ports:
+      # Bound to loopback so a second cloudflared route can expose it as media.<domain>.
+      - '127.0.0.1:${MINIO_PORT:-9000}:9000'
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc mb --ignore-existing "local/$$S3_BUCKET"
+        # Never public: every object is served through a 5-minute presigned URL (LGPD §10).
+        mc anonymous set none "local/$$S3_BUCKET"
+        echo "bucket $$S3_BUCKET ready"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      S3_BUCKET: ${S3_BUCKET:-personal-media}
+    restart: on-failure
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      API_PREFIX: api/v1
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-personal}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-personal}?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: ${PUBLIC_APP_URL:-http://localhost:8080}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEED: ${RUN_SEED:-false}
+      SEED_TENANT_SLUG: ${SEED_TENANT_SLUG:-demo}
+      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-Academia Demo}
+      SEED_TRAINER_EMAIL: ${SEED_TRAINER_EMAIL:-trainer@demo.local}
+      SEED_TRAINER_PASSWORD: ${SEED_TRAINER_PASSWORD:-}
+      SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-}
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-personal-media}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      S3_FORCE_PATH_STYLE: 'true'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      # The single origin cloudflared points at.
+      - '127.0.0.1:${WEB_PORT:-8080}:80'
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

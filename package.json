@@ -1,0 +1,35 @@
+{
+  "name": "personal-trainer-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter @pt/shared build && pnpm -r --filter @pt/api --filter @pt/web build",
+    "dev": "pnpm --parallel --filter @pt/api --filter @pt/web dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @pt/api prisma:generate",
+    "db:migrate": "pnpm --filter @pt/api prisma:migrate",
+    "db:deploy": "pnpm --filter @pt/api prisma:deploy",
+    "db:seed": "pnpm --filter @pt/api prisma:seed",
+    "db:studio": "pnpm --filter @pt/api prisma:studio",
+    "docker:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+    "docker:down": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.9.1",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.11.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.68.0"
+  }
+}

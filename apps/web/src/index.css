@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-950: #0f172a;
+  --color-brand-900: #111c33;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  /* Room for the home indicator on iOS when running standalone. */
+  padding-bottom: env(safe-area-inset-bottom);
+  @apply bg-slate-950 text-slate-100 antialiased;
+}

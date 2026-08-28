@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+pnpm-lock.yaml
+
+# Source documents owned by the author — never reformat.
+SPEC-personal-trainer.md
+apps/api/prisma/migrations
+apps/web/dev-dist

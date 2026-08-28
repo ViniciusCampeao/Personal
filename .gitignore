@@ -1,0 +1,27 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build
+dist/
+build/
+*.tsbuildinfo
+apps/web/dev-dist/
+
+# test
+coverage/
+
+# env
+.env
+.env.*
+!.env.example
+
+# runtime data (docker volumes bind-mounted locally, if any)
+.data/
+
+# editors / os
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.log

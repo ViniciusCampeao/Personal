@@ -1,0 +1,26 @@
+import { Body, Controller, Post } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import {
+  presignRequestSchema,
+  type PresignRequestInput,
+  type PresignResponseDto,
+} from '@pt/shared';
+import { Roles } from '../../common/auth/roles.decorator';
+import { CurrentUser } from '../../common/auth/current-user.decorator';
+import { ZodValidationPipe } from '../../common/validation/zod-validation.pipe';
+import { type RequestUser } from '../../common/auth/types';
+import { MediaService } from './media.service';
+
+@Controller('media')
+export class MediaController {
+  constructor(private readonly media: MediaService) {}
+
+  @Roles(Role.TRAINER)
+  @Post('presign')
+  presign(
+    @Body(new ZodValidationPipe(presignRequestSchema)) body: PresignRequestInput,
+    @CurrentUser() user: RequestUser,
+  ): Promise<PresignResponseDto> {
+    return this.media.presign(user.tenantId, body);
+  }
+}

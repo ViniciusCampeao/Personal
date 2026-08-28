@@ -1,0 +1,778 @@
+// Personal trainer platform — full data model (spec §3).
+//
+// Two rules govern this file:
+//   1. Every tenant-scoped model carries `tenantId`. No query may touch one of these
+//      tables without filtering by it (enforced by the Prisma extension added in M1).
+//   2. `PrescribedSet` (what was prescribed) and `SetLog` (what was actually done) are
+//      separate on purpose. Do not merge them — the whole progression history lives in
+//      the difference between the two.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------- enums
+
+enum Role {
+  ADMIN
+  TRAINER
+  STUDENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  QUADS
+  HAMSTRINGS
+  GLUTES
+  CALVES
+  ADDUCTORS
+  ABDUCTORS
+  ABS
+  LOWER_BACK
+  TRAPS
+  NECK
+  FULL_BODY
+  CARDIO
+}
+
+enum MuscleRole {
+  PRIMARY
+  SECONDARY
+}
+
+enum Equipment {
+  BARBELL
+  DUMBBELL
+  MACHINE
+  CABLE
+  SMITH
+  KETTLEBELL
+  BODYWEIGHT
+  BAND
+  SUSPENSION
+  MEDICINE_BALL
+  CARDIO_MACHINE
+  OTHER
+}
+
+enum MovementPattern {
+  HORIZONTAL_PUSH
+  VERTICAL_PUSH
+  HORIZONTAL_PULL
+  VERTICAL_PULL
+  SQUAT
+  HINGE
+  LUNGE
+  CARRY
+  ROTATION
+  ISOLATION
+  CONDITIONING
+  MOBILITY
+}
+
+enum LoadType {
+  EXTERNAL
+  BODYWEIGHT
+  BODYWEIGHT_PLUS
+  TIME
+  DISTANCE
+  NONE
+}
+
+enum ProgramStatus {
+  DRAFT
+  ACTIVE
+  FINISHED
+  ARCHIVED
+}
+
+enum Technique {
+  NORMAL
+  BISET
+  TRISET
+  CIRCUIT
+  DROPSET
+  REST_PAUSE
+  CLUSTER
+  AMRAP
+  PYRAMID
+  ISOMETRIC
+}
+
+enum SetType {
+  WARMUP
+  WORK
+  BACKOFF
+  DROP
+  FAILURE
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  SKIPPED
+}
+
+enum SkinfoldProtocol {
+  NONE
+  POLLOCK_3
+  POLLOCK_7
+  GUEDES
+  FAULKNER
+}
+
+enum PhotoPose {
+  FRONT
+  BACK
+  SIDE_LEFT
+  SIDE_RIGHT
+}
+
+enum ConsentType {
+  TERMS
+  PRIVACY
+  HEALTH_DATA
+  PHOTO
+}
+
+enum PrType {
+  MAX_LOAD
+  MAX_REPS
+  EST_1RM
+  MAX_SET_VOLUME
+}
+
+// ---------------------------------------------------------------- tenancy & identity
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  users             User[]
+  studentProfiles   StudentProfile[]
+  invites           Invite[]
+  consents          Consent[]
+  anamneses         Anamnesis[]
+  medicalClearances MedicalClearance[]
+  exercises         Exercise[]
+  programs          Program[]
+  sessions          WorkoutSession[]
+  personalRecords   PersonalRecord[]
+  assessments       Assessment[]
+  checkIns          CheckIn[]
+  sessionComments   SessionComment[]
+  pushSubscriptions PushSubscription[]
+  notifications     Notification[]
+  mediaAssets       MediaAsset[]
+  auditLogs         AuditLog[]
+}
+
+model User {
+  id           String     @id @default(uuid())
+  tenantId     String
+  email        String
+  passwordHash String?
+  name         String
+  phone        String?
+  role         Role
+  avatarKey    String?
+  status       UserStatus @default(PENDING)
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  deletedAt    DateTime?
+
+  tenant                    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainerProfile            TrainerProfile?
+  studentProfile            StudentProfile?    @relation("StudentProfileUser")
+  students                  StudentProfile[]   @relation("TrainerStudents")
+  invitesCreated            Invite[]           @relation("TrainerInvites")
+  consents                  Consent[]
+  exercisesCreated          Exercise[]         @relation("ExerciseAuthor")
+  programsAsTrainer         Program[]          @relation("TrainerPrograms")
+  assessmentsAsTrainer      Assessment[]       @relation("TrainerAssessments")
+  medicalClearancesVerified MedicalClearance[] @relation("ClearanceVerifier")
+  sessionComments           SessionComment[]
+  pushSubscriptions         PushSubscription[]
+  notifications             Notification[]
+  mediaAssets               MediaAsset[]
+  auditLogs                 AuditLog[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId, role, status])
+  @@index([tenantId, deletedAt])
+}
+
+model TrainerProfile {
+  userId      String   @id
+  cref        String?
+  bio         String?
+  specialties String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StudentProfile {
+  userId             String          @id
+  tenantId           String
+  trainerId          String
+  birthDate          DateTime?
+  sex                Sex?
+  heightCm           Float?
+  goal               String?
+  experienceLevel    ExperienceLevel @default(BEGINNER)
+  weeklyAvailability Int?
+  privateNotes       String?
+  startedAt          DateTime        @default(now())
+
+  user    User   @relation("StudentProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainer User   @relation("TrainerStudents", fields: [trainerId], references: [id], onDelete: Restrict)
+
+  anamneses         Anamnesis[]
+  medicalClearances MedicalClearance[]
+  programs          Program[]          @relation("StudentPrograms")
+  sessions          WorkoutSession[]
+  personalRecords   PersonalRecord[]
+  assessments       Assessment[]
+  checkIns          CheckIn[]
+
+  @@index([tenantId, trainerId])
+}
+
+model Invite {
+  id         String    @id @default(uuid())
+  tenantId   String
+  trainerId  String
+  email      String?
+  phone      String?
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainer User   @relation("TrainerInvites", fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, trainerId, acceptedAt])
+  @@index([expiresAt])
+}
+
+model Consent {
+  id         String      @id @default(uuid())
+  tenantId   String
+  userId     String
+  type       ConsentType
+  version    String
+  acceptedAt DateTime    @default(now())
+  ip         String?
+  userAgent  String?
+  revokedAt  DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, type])
+}
+
+// ---------------------------------------------------------------- health data (LGPD sensitive)
+
+model Anamnesis {
+  id              String   @id @default(uuid())
+  tenantId        String
+  studentId       String
+  parq            Json
+  injuries        Json
+  conditions      String?
+  medications     String?
+  surgeries       String?
+  smokes          Boolean  @default(false)
+  alcohol         String?
+  sleepHours      Float?
+  trainingHistory String?
+  notes           String?
+  answeredAt      DateTime @default(now())
+  version         Int      @default(1)
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@unique([studentId, version])
+  @@index([tenantId, studentId, answeredAt])
+}
+
+model MedicalClearance {
+  id         String    @id @default(uuid())
+  tenantId   String
+  studentId  String
+  fileKey    String
+  issuedAt   DateTime?
+  expiresAt  DateTime?
+  verifiedAt DateTime?
+  verifiedBy String?
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student  StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  verifier User?          @relation("ClearanceVerifier", fields: [verifiedBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, studentId])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------- exercise library
+
+model Exercise {
+  id                String          @id @default(uuid())
+  /// null = global exercise, shared by every tenant
+  tenantId          String?
+  name              String
+  slug              String
+  description       String?
+  instructions      String?
+  cues              String[]
+  commonMistakes    String[]
+  movementPattern   MovementPattern
+  equipment         Equipment
+  loadType          LoadType        @default(EXTERNAL)
+  unilateral        Boolean         @default(false)
+  videoUrl          String?
+  thumbKey          String?
+  /// exercises sharing a value are interchangeable in a session
+  substitutionGroup String?
+  createdById       String?
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+
+  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("ExerciseAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  muscles             ExerciseMuscle[]
+  prescribedExercises PrescribedExercise[]
+  sessionExercises    SessionExercise[]    @relation("SessionExercisePerformed")
+  substitutedInto     SessionExercise[]    @relation("SessionExerciseSubstitutedFrom")
+  personalRecords     PersonalRecord[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, isActive])
+  @@index([movementPattern, equipment])
+  @@index([substitutionGroup])
+}
+
+model ExerciseMuscle {
+  exerciseId String
+  muscle     MuscleGroup
+  role       MuscleRole
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, muscle])
+  @@index([muscle, role])
+}
+
+// ---------------------------------------------------------------- prescription
+
+model Program {
+  id              String        @id @default(uuid())
+  tenantId        String
+  trainerId       String
+  /// null = reusable template, not assigned to anyone
+  studentId       String?
+  isTemplate      Boolean       @default(false)
+  sourceProgramId String?
+  name            String
+  goal            String?
+  notes           String?
+  weeks           Int?
+  startDate       DateTime?
+  endDate         DateTime?
+  status          ProgramStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainer User            @relation("TrainerPrograms", fields: [trainerId], references: [id], onDelete: Restrict)
+  student StudentProfile? @relation("StudentPrograms", fields: [studentId], references: [userId], onDelete: Cascade)
+  source  Program?        @relation("ProgramLineage", fields: [sourceProgramId], references: [id], onDelete: SetNull)
+
+  derivedFrom Program[]        @relation("ProgramLineage")
+  days        WorkoutDay[]
+  sessions    WorkoutSession[]
+
+  @@index([tenantId, studentId, status])
+  @@index([tenantId, trainerId, isTemplate])
+}
+
+model WorkoutDay {
+  id               String  @id @default(uuid())
+  programId        String
+  /// short handle shown in the app: "A", "B", "Push"
+  label            String
+  name             String?
+  orderIndex       Int
+  notes            String?
+  estimatedMinutes Int?
+
+  program   Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  exercises PrescribedExercise[]
+  sessions  WorkoutSession[]
+
+  @@index([programId, orderIndex])
+}
+
+model PrescribedExercise {
+  id           String    @id @default(uuid())
+  workoutDayId String
+  exerciseId   String
+  orderIndex   Int
+  /// same groupKey = bi-set / tri-set / circuit
+  groupKey     String?
+  groupOrder   Int?
+  technique    Technique @default(NORMAL)
+  restSeconds  Int?
+  /// "3-1-1-0"
+  tempo        String?
+  notes        String?
+  /// {"type":"DOUBLE_PROGRESSION","incrementKg":2.5}
+  progressionRule Json?
+
+  workoutDay WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+  exercise   Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+
+  sets             PrescribedSet[]
+  sessionExercises SessionExercise[]
+
+  @@index([workoutDayId, orderIndex])
+  @@index([exerciseId])
+}
+
+model PrescribedSet {
+  id                   String  @id @default(uuid())
+  prescribedExerciseId String
+  setNumber            Int
+  setType              SetType @default(WORK)
+  repsMin              Int?
+  repsMax              Int?
+  targetLoadKg         Float?
+  targetRir            Int?
+  targetRpe            Float?
+  targetSeconds        Int?
+  targetDistanceM      Float?
+  restSecondsOverride  Int?
+
+  prescribedExercise PrescribedExercise @relation(fields: [prescribedExerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([prescribedExerciseId, setNumber])
+}
+
+// ---------------------------------------------------------------- execution
+
+model WorkoutSession {
+  id              String        @id @default(uuid())
+  tenantId        String
+  studentId       String
+  programId       String?
+  workoutDayId    String?
+  /// idempotency key generated by the client, survives offline sync
+  clientUuid      String        @unique
+  status          SessionStatus @default(IN_PROGRESS)
+  startedAt       DateTime
+  finishedAt      DateTime?
+  durationSeconds Int?
+  perceivedEffort Int?
+  mood            Int?
+  notes           String?
+  /// denormalised on finish
+  totalVolumeKg   Float?
+  syncedAt        DateTime?
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student    StudentProfile  @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  program    Program?        @relation(fields: [programId], references: [id], onDelete: SetNull)
+  workoutDay WorkoutDay?     @relation(fields: [workoutDayId], references: [id], onDelete: SetNull)
+
+  exercises SessionExercise[]
+  comments  SessionComment[]
+
+  @@index([tenantId, studentId, startedAt])
+  @@index([tenantId, status])
+  @@index([programId])
+  @@index([workoutDayId])
+}
+
+model SessionExercise {
+  id                        String  @id @default(uuid())
+  sessionId                 String
+  prescribedExerciseId      String?
+  exerciseId                String
+  orderIndex                Int
+  substitutedFromExerciseId String?
+  substitutionReason        String?
+  skipped                   Boolean @default(false)
+  notes                     String?
+
+  session              WorkoutSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  prescribedExercise   PrescribedExercise? @relation(fields: [prescribedExerciseId], references: [id], onDelete: SetNull)
+  exercise             Exercise            @relation("SessionExercisePerformed", fields: [exerciseId], references: [id], onDelete: Restrict)
+  substitutedFrom      Exercise?           @relation("SessionExerciseSubstitutedFrom", fields: [substitutedFromExerciseId], references: [id], onDelete: SetNull)
+
+  sets SetLog[]
+
+  @@index([sessionId, orderIndex])
+  @@index([exerciseId])
+  @@index([prescribedExerciseId])
+}
+
+model SetLog {
+  id                String   @id @default(uuid())
+  sessionExerciseId String
+  clientUuid        String   @unique
+  setNumber         Int
+  setType           SetType  @default(WORK)
+  reps              Int?
+  loadKg            Float?
+  rir               Int?
+  rpe               Float?
+  seconds           Int?
+  distanceM         Float?
+  toFailure         Boolean  @default(false)
+  /// computed on save from reps + loadKg
+  estimated1rm      Float?
+  doneAt            DateTime
+  notes             String?
+
+  sessionExercise SessionExercise  @relation(fields: [sessionExerciseId], references: [id], onDelete: Cascade)
+  personalRecords PersonalRecord[]
+
+  @@index([sessionExerciseId, setNumber])
+  @@index([doneAt])
+}
+
+model PersonalRecord {
+  id         String   @id @default(uuid())
+  tenantId   String
+  studentId  String
+  exerciseId String
+  type       PrType
+  value      Float
+  reps       Int?
+  setLogId   String?
+  achievedAt DateTime
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student  StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  exercise Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  setLog   SetLog?        @relation(fields: [setLogId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, exerciseId, type])
+  @@index([tenantId, studentId, achievedAt])
+  @@index([exerciseId])
+  @@index([setLogId])
+}
+
+// ---------------------------------------------------------------- assessment
+
+model Assessment {
+  id            String           @id @default(uuid())
+  tenantId      String
+  studentId     String
+  trainerId     String
+  assessedAt    DateTime
+  protocol      SkinfoldProtocol @default(NONE)
+  weightKg      Float?
+  heightCm      Float?
+  bmi           Float?
+  bodyFatPct    Float?
+  fatMassKg     Float?
+  leanMassKg    Float?
+  restingHr     Int?
+  bloodPressure String?
+  notes         String?
+  createdAt     DateTime         @default(now())
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  trainer User           @relation("TrainerAssessments", fields: [trainerId], references: [id], onDelete: Restrict)
+
+  measurements AssessmentMeasurement[]
+  skinfolds    AssessmentSkinfold[]
+  photos       AssessmentPhoto[]
+
+  @@index([tenantId, studentId, assessedAt])
+  @@index([trainerId])
+}
+
+model AssessmentMeasurement {
+  id           String @id @default(uuid())
+  assessmentId String
+  /// NECK, CHEST, WAIST, ABDOMEN, HIP, ARM_R, ARM_L, FOREARM_R, ...
+  site         String
+  valueCm      Float
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, site])
+}
+
+model AssessmentSkinfold {
+  id           String @id @default(uuid())
+  assessmentId String
+  /// TRICEPS, SUBSCAPULAR, CHEST, MIDAXILLARY, SUPRAILIAC, ABDOMINAL, THIGH
+  site         String
+  valueMm      Float
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, site])
+}
+
+model AssessmentPhoto {
+  id           String    @id @default(uuid())
+  assessmentId String
+  pose         PhotoPose
+  fileKey      String
+  takenAt      DateTime  @default(now())
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+}
+
+// ---------------------------------------------------------------- follow-up
+
+model CheckIn {
+  id           String   @id @default(uuid())
+  tenantId     String
+  studentId    String
+  /// monday of the week this check-in refers to
+  weekStart    DateTime
+  sleepQuality Int?
+  energy       Int?
+  soreness     Int?
+  stress       Int?
+  weightKg     Float?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@unique([studentId, weekStart])
+  @@index([tenantId, weekStart])
+}
+
+model SessionComment {
+  id        String    @id @default(uuid())
+  tenantId  String
+  sessionId String
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author  User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, sessionId, createdAt])
+  @@index([authorId])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  tenantId  String
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, readAt])
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  tenantId  String
+  ownerId   String
+  key       String   @unique
+  mime      String
+  sizeBytes Int
+  /// AVATAR, EXERCISE_VIDEO, ASSESSMENT_PHOTO, MEDICAL_DOC, FORM_VIDEO
+  kind      String
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  owner  User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, ownerId, kind])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenantId    String
+  actorId     String?
+  /// READ_SENSITIVE, EXPORT, DELETE_ACCOUNT, ...
+  action      String
+  entity      String
+  entityId    String?
+  isSensitive Boolean  @default(false)
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor  User?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, entity, entityId])
+  @@index([tenantId, createdAt])
+  @@index([actorId])
+}

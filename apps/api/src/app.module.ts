@@ -18,6 +18,8 @@ import { HealthModule } from './modules/health/health.module';
 import { InvitesModule } from './modules/invites/invites.module';
 import { MediaModule } from './modules/media/media.module';
 import { ProgramsModule } from './modules/programs/programs.module';
+import { ProgressModule } from './modules/progress/progress.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { ProgramsModule } from './modules/programs/programs.module';
     ExercisesModule,
     MediaModule,
     ProgramsModule,
+    SessionsModule,
+    ProgressModule,
     HealthModule,
   ],
   providers: [

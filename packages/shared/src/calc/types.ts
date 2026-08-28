@@ -25,11 +25,3 @@ export class CalcValidationError extends Error {
     this.name = 'CalcValidationError';
   }
 }
-
-/** Thrown when a protocol exists in the domain but has no formula wired up yet. */
-export class UnsupportedProtocolError extends Error {
-  constructor(readonly protocol: string) {
-    super(`Skinfold protocol "${protocol}" has no implemented formula.`);
-    this.name = 'UnsupportedProtocolError';
-  }
-}

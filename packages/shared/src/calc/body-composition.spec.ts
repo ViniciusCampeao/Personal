@@ -3,13 +3,14 @@ import {
   calculateBodyComposition,
   faulknerBodyFatPct,
   fatMassKg,
+  guedesDensity,
   leanMassKg,
   pollock3Density,
   pollock7Density,
   requiredSkinfoldSites,
   siriBodyFatPct,
 } from './body-composition';
-import { CalcValidationError, UnsupportedProtocolError } from './types';
+import { CalcValidationError } from './types';
 
 describe('requiredSkinfoldSites', () => {
   it('uses sex-specific sites for Pollock 3', () => {
@@ -38,8 +39,13 @@ describe('requiredSkinfoldSites', () => {
     expect(requiredSkinfoldSites('NONE', 'MALE')).toEqual([]);
   });
 
-  it('refuses GUEDES until its constants are pinned by the spec', () => {
-    expect(() => requiredSkinfoldSites('GUEDES', 'MALE')).toThrow(UnsupportedProtocolError);
+  it('uses sex-specific sites for Guedes', () => {
+    expect(requiredSkinfoldSites('GUEDES', 'MALE')).toEqual(['TRICEPS', 'SUPRAILIAC', 'ABDOMINAL']);
+    expect(requiredSkinfoldSites('GUEDES', 'FEMALE')).toEqual([
+      'SUBSCAPULAR',
+      'SUPRAILIAC',
+      'THIGH',
+    ]);
   });
 });
 
@@ -68,6 +74,18 @@ describe('density formulas against reference values', () => {
     const density = pollock7Density('FEMALE', 116, 28);
     expect(density).toBeCloseTo(1.0464572, 7);
     expect(siriBodyFatPct(density)).toBeCloseTo(23.0246, 4);
+  });
+
+  it('Guedes, male, sum 50 mm', () => {
+    const density = guedesDensity('MALE', 50);
+    expect(density).toBeCloseTo(1.0574271, 7);
+    expect(siriBodyFatPct(density)).toBeCloseTo(18.1174, 4);
+  });
+
+  it('Guedes, female, sum 70 mm', () => {
+    const density = guedesDensity('FEMALE', 70);
+    expect(density).toBeCloseTo(1.0496445, 7);
+    expect(siriBodyFatPct(density)).toBeCloseTo(21.5883, 4);
   });
 
   it('body fat rises as skinfolds thicken and as age rises', () => {
@@ -177,6 +195,20 @@ describe('calculateBodyComposition', () => {
         skinfoldsMm: { TRICEPS: 20, SUBSCAPULAR: 15, SUPRAILIAC: 15, ABDOMINAL: 10 },
       }),
     ).not.toThrow();
+  });
+
+  it('runs the full chain for Guedes without demanding age', () => {
+    const result = calculateBodyComposition({
+      protocol: 'GUEDES',
+      sex: 'MALE',
+      skinfoldsMm: { TRICEPS: 15, SUPRAILIAC: 15, ABDOMINAL: 20 },
+      weightKg: 80,
+      heightCm: 180,
+    });
+    expect(result.sumMm).toBe(50);
+    expect(result.bodyDensity).toBeCloseTo(1.0574271, 7);
+    expect(result.bodyFatPct).toBeCloseTo(18.1174, 4);
+    expect(result.fatMassKg).toBeCloseTo(14.4939, 3);
   });
 
   it('leaves mass split null when weight is unknown', () => {

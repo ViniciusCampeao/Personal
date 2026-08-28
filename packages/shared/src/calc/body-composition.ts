@@ -1,20 +1,8 @@
-import {
-  CalcValidationError,
-  UnsupportedProtocolError,
-  type Sex,
-  type SkinfoldProtocol,
-  type SkinfoldSite,
-} from './types';
+import { CalcValidationError, type Sex, type SkinfoldProtocol, type SkinfoldSite } from './types';
 
-/**
- * Body composition — spec §7.
- *
- * GUEDES is intentionally NOT implemented: the spec lists it in the enum but does not
- * pin its regression constants, and guessing them would silently produce wrong health
- * numbers. Calling it throws `UnsupportedProtocolError`.
- */
+/** Body composition — spec §7. */
 
-export type SupportedSkinfoldProtocol = 'POLLOCK_3' | 'POLLOCK_7' | 'FAULKNER';
+export type SupportedSkinfoldProtocol = 'POLLOCK_3' | 'POLLOCK_7' | 'FAULKNER' | 'GUEDES';
 
 const POLLOCK_3_SITES: Record<Sex, SkinfoldSite[]> = {
   MALE: ['CHEST', 'ABDOMINAL', 'THIGH'],
@@ -33,7 +21,13 @@ const POLLOCK_7_SITES: SkinfoldSite[] = [
 
 const FAULKNER_SITES: SkinfoldSite[] = ['TRICEPS', 'SUBSCAPULAR', 'SUPRAILIAC', 'ABDOMINAL'];
 
-/** Sites the given protocol needs. Empty for NONE. Throws for unimplemented protocols. */
+/** Guedes & Guedes (1994), 3 dobras — constants confirmed by the trainer directly. */
+const GUEDES_SITES: Record<Sex, SkinfoldSite[]> = {
+  MALE: ['TRICEPS', 'SUPRAILIAC', 'ABDOMINAL'],
+  FEMALE: ['SUBSCAPULAR', 'SUPRAILIAC', 'THIGH'],
+};
+
+/** Sites the given protocol needs. Empty for NONE. */
 export function requiredSkinfoldSites(protocol: SkinfoldProtocol, sex: Sex): SkinfoldSite[] {
   switch (protocol) {
     case 'NONE':
@@ -45,11 +39,11 @@ export function requiredSkinfoldSites(protocol: SkinfoldProtocol, sex: Sex): Ski
     case 'FAULKNER':
       return [...FAULKNER_SITES];
     case 'GUEDES':
-      throw new UnsupportedProtocolError(protocol);
+      return [...GUEDES_SITES[sex]];
   }
 }
 
-/** Protocols whose formula needs the subject's age. */
+/** Protocols whose formula needs the subject's age. Guedes' equation does not use age. */
 export function protocolRequiresAge(protocol: SkinfoldProtocol): boolean {
   return protocol === 'POLLOCK_3' || protocol === 'POLLOCK_7';
 }
@@ -76,6 +70,13 @@ export function pollock7Density(sex: Sex, sumMm: number, ageYears: number): numb
 /** Faulkner: `%G = Σ × 0.153 + 5.783` — goes straight to body fat, no density step. */
 export function faulknerBodyFatPct(sumMm: number): number {
   return sumMm * 0.153 + 5.783;
+}
+
+/** Guedes & Guedes (1994), 3 dobras — log base 10 (Brazilian anthropometry convention). */
+export function guedesDensity(sex: Sex, sumMm: number): number {
+  return sex === 'MALE'
+    ? 1.17136 - 0.06706 * Math.log10(sumMm)
+    : 1.16631 - 0.06323 * Math.log10(sumMm);
 }
 
 export function bmi(weightKg: number, heightCm: number): number {
@@ -161,6 +162,10 @@ export function calculateBodyComposition(input: BodyCompositionInput): BodyCompo
 
   if (protocol === 'FAULKNER') {
     result.bodyFatPct = faulknerBodyFatPct(sumMm);
+  } else if (protocol === 'GUEDES') {
+    const density = guedesDensity(sex, sumMm);
+    result.bodyDensity = density;
+    result.bodyFatPct = siriBodyFatPct(density);
   } else {
     const density =
       protocol === 'POLLOCK_3'

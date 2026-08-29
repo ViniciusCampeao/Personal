@@ -4,10 +4,14 @@ module.exports = {
   testEnvironment: '<rootDir>/test/jsdom-env.cjs',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.{ts,tsx}'],
+  // TypeScript only: `@pt/shared` resolves to its compiled CommonJS `dist`, which Jest
+  // requires as-is. Feeding those `.js` files to ts-jest just warns about `allowJs`.
   transform: {
-    '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
   },
   moduleNameMapper: {
     '\\.(css|less|scss)$': '<rootDir>/test/style-mock.cjs',
+    // Mirrors `paths` in tsconfig.app.json and `resolve.alias` in vite.config.ts.
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
 };

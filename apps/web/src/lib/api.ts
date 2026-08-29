@@ -21,31 +21,84 @@ export class ApiError extends Error {
 
 export const API_BASE = '/api/v1';
 
+export interface ApiFetchOptions {
+  /**
+   * `required` (default) sends the bearer token and retries once through a token
+   * refresh on 401. `none` is for the endpoints that establish a session — sending a
+   * stale token there, or refreshing on their 401, would loop.
+   */
+  auth?: 'required' | 'none';
+}
+
+interface AuthBridge {
+  getToken: () => string | null;
+  refresh: () => Promise<string | null>;
+  onUnauthenticated: () => void;
+}
+
+let authBridge: AuthBridge | null = null;
+
 /**
- * Same-origin fetch wrapper. `credentials: 'include'` is already here because the refresh
- * token lands in an httpOnly cookie in M1.
+ * Wires the auth layer in at boot. Injected rather than imported so `lib/` never depends
+ * on `features/` — otherwise `api.ts` and `auth-store.ts` would import each other.
  */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(path.startsWith('/health') ? path : `${API_BASE}${path}`, {
+export function configureApiAuth(bridge: AuthBridge | null): void {
+  authBridge = bridge;
+}
+
+function resolveUrl(path: string): string {
+  // /health and /health/ready sit outside the global API prefix.
+  return path.startsWith('/health') ? path : `${API_BASE}${path}`;
+}
+
+async function toApiError(response: Response): Promise<ApiError> {
+  let problem: ProblemDetails = {
+    type: 'about:blank',
+    title: 'Falha na comunicação com o servidor',
+    status: response.status,
+  };
+  try {
+    problem = { ...problem, ...(await response.json()) };
+  } catch {
+    // non-JSON error body (proxy/gateway); keep the generic problem above
+  }
+  return new ApiError(problem, response.status);
+}
+
+function send(path: string, init: RequestInit, token: string | null): Promise<Response> {
+  return fetch(resolveUrl(path), {
     ...init,
     credentials: 'include',
-    headers: { Accept: 'application/json', ...init.headers },
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init.headers,
+    },
   });
+}
 
-  if (!response.ok) {
-    let problem: ProblemDetails = {
-      type: 'about:blank',
-      title: 'Falha na comunicação com o servidor',
-      status: response.status,
-    };
-    try {
-      problem = { ...problem, ...(await response.json()) };
-    } catch {
-      // non-JSON error body (proxy/gateway); keep the generic problem above
-    }
-    throw new ApiError(problem, response.status);
+/**
+ * Same-origin fetch wrapper. `credentials: 'include'` matters for the httpOnly refresh
+ * cookie, which the API scopes to `/api/v1/auth`.
+ */
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  { auth = 'required' }: ApiFetchOptions = {},
+): Promise<T> {
+  const useAuth = auth === 'required' && authBridge !== null;
+  let response = await send(path, init, useAuth ? authBridge!.getToken() : null);
+
+  if (response.status === 401 && useAuth) {
+    const token = await authBridge!.refresh();
+    // Replay once, rebuilding from `path`/`init` — a consumed Request can't be reused.
+    if (token) response = await send(path, init, token);
+    // Outside `/auth/*` the API only answers 401 from the access guard (a wrong role is
+    // 403), so a token minted moments ago being refused means the session is gone.
+    if (!token || response.status === 401) authBridge!.onUnauthenticated();
   }
 
+  if (!response.ok) throw await toApiError(response);
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
@@ -56,5 +109,5 @@ export interface HealthStatus {
 }
 
 export function fetchHealth(): Promise<HealthStatus> {
-  return apiFetch<HealthStatus>('/health');
+  return apiFetch<HealthStatus>('/health', {}, { auth: 'none' });
 }

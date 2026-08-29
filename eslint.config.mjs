@@ -2,6 +2,8 @@ import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
+import reactHooks from 'eslint-plugin-react-hooks';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
   {
@@ -40,6 +42,26 @@ export default tseslint.config(
     files: ['apps/web/**/*.{ts,tsx}'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.serviceworker },
+    },
+    plugins: { 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
+    settings: {
+      // The design-system primitives are thin wrappers over these elements; without the
+      // mapping every a11y rule stops at the custom component and sees nothing.
+      'jsx-a11y': {
+        components: {
+          Input: 'input',
+          Checkbox: 'input',
+          Label: 'label',
+          Button: 'button',
+        },
+      },
+    },
+    rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
+      // Errors, not warnings: the rest-timer and offline code in later phases is prime
+      // stale-closure territory, and a backlog of warnings never gets paid down.
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
     },
   },
   {

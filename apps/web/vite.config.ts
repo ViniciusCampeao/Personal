@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -14,6 +15,12 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Web Push needs `push`/`notificationclick` handlers, which `generateSW` cannot
+      // emit — the worker is hand-written in src/sw.ts and workbox only injects the
+      // precache manifest into it.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
@@ -34,13 +41,8 @@ export default defineConfig({
           { src: 'maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        cleanupOutdatedCaches: true,
-        navigateFallback: 'index.html',
-        // The API is never served from the SPA fallback.
-        navigateFallbackDenylist: [/^\/api\//, /^\/health/],
-        // Runtime caching (videos, thumbs, NetworkFirst API) is wired up in M7.
       },
       devOptions: { enabled: false },
     }),
@@ -58,7 +60,21 @@ export default defineConfig({
       },
     },
   },
+  // Mirrors `paths` in tsconfig.app.json and `moduleNameMapper` in jest.config.cjs.
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   // @pt/shared is a workspace package compiled to CommonJS; pre-bundle it explicitly.
+  // Editing a shared schema needs a vite restart — the pre-bundle is not re-run on
+  // changes to its `dist`.
   optimizeDeps: { include: ['@pt/shared'] },
-  build: { outDir: 'dist', sourcemap: true },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    // `@pt/shared` resolves through a workspace symlink, so it misses the default
+    // `/node_modules/` filter and rollup would parse its CommonJS `dist` as ESM —
+    // "loginSchema is not exported by ...". Dev never hits this: `optimizeDeps` above
+    // pre-bundles the same package with esbuild instead.
+    commonjsOptions: { include: [/node_modules/, /packages\/shared/] },
+  },
 });

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "pnpm -r --filter @pt/shared build && pnpm -r --filter @pt/api --filter @pt/web build",
-    "dev": "pnpm --parallel --filter @pt/api --filter @pt/web dev",
+    "dev": "pnpm --filter @pt/shared build && pnpm --parallel --filter @pt/shared --filter @pt/api --filter @pt/web dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -27,6 +27,8 @@
     "@eslint/js": "10.0.1",
     "eslint": "10.9.1",
     "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "17.11.0",
     "prettier": "3.9.6",
     "typescript": "5.9.3",

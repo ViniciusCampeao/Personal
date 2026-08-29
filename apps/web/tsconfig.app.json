@@ -11,7 +11,11 @@
     "types": ["vite/client", "vite-plugin-pwa/client", "jest", "@testing-library/jest-dom"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    // Kept in sync with `resolve.alias` in vite.config.ts and `moduleNameMapper` in
+    // jest.config.cjs — all three must agree.
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"]
 }

@@ -7,3 +7,5 @@
  */
 export const CURRENT_TERMS_VERSION = 'v1';
 export const CURRENT_PRIVACY_VERSION = 'v1';
+export const CURRENT_HEALTH_DATA_VERSION = 'v1';
+export const CURRENT_PHOTO_VERSION = 'v1';

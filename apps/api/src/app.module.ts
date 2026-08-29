@@ -12,6 +12,8 @@ import { StorageModule } from './common/storage/storage.module';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
 import { readEnv, type Env, validateEnv } from './config/env';
 import { loggerOptions } from './config/logger';
+import { AnamnesisModule } from './modules/anamnesis/anamnesis.module';
+import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExercisesModule } from './modules/exercises/exercises.module';
 import { HealthModule } from './modules/health/health.module';
@@ -54,6 +56,8 @@ import { SessionsModule } from './modules/sessions/sessions.module';
     ProgramsModule,
     SessionsModule,
     ProgressModule,
+    AnamnesisModule,
+    AssessmentsModule,
     HealthModule,
   ],
   providers: [

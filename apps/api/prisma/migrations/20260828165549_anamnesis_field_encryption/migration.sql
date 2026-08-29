@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Anamnesis" ALTER COLUMN "parq" SET DATA TYPE TEXT,
+ALTER COLUMN "injuries" SET DATA TYPE TEXT;

@@ -10,6 +10,7 @@ const MINIMUM = {
   S3_PUBLIC_ENDPOINT: 'http://localhost:9000',
   S3_ACCESS_KEY: 'minioadmin',
   S3_SECRET_KEY: 'minioadmin-secret',
+  HEALTH_DATA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
 };
 
 describe('validateEnv', () => {
@@ -39,6 +40,12 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...MINIMUM, JWT_ACCESS_SECRET: 'too-short' })).toThrow(
       /JWT_ACCESS_SECRET/,
     );
+  });
+
+  it('rejects a HEALTH_DATA_ENCRYPTION_KEY that does not decode to 32 bytes', () => {
+    expect(() =>
+      validateEnv({ ...MINIMUM, HEALTH_DATA_ENCRYPTION_KEY: Buffer.alloc(16).toString('base64') }),
+    ).toThrow(/HEALTH_DATA_ENCRYPTION_KEY/);
   });
 
   it('rejects a malformed duration string', () => {

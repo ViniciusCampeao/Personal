@@ -24,6 +24,7 @@ const ENV: Env = {
   S3_ACCESS_KEY: 'minioadmin',
   S3_SECRET_KEY: 'minioadmin-secret',
   S3_FORCE_PATH_STYLE: true,
+  HEALTH_DATA_ENCRYPTION_KEY: Buffer.alloc(32, 3).toString('base64'),
 };
 
 function fakeConfig() {

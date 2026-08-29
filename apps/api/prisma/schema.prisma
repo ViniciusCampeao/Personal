@@ -311,15 +311,22 @@ model Anamnesis {
   id              String   @id @default(uuid())
   tenantId        String
   studentId       String
-  parq            Json
-  injuries        Json
+  /// AES-256-GCM ciphertext of the JSON payload (FieldEncryptionService) — spec §10.3
+  parq            String
+  /// AES-256-GCM ciphertext of the JSON payload (FieldEncryptionService) — spec §10.3
+  injuries        String
+  /// Ciphertext (FieldEncryptionService) — spec §10.3
   conditions      String?
+  /// Ciphertext (FieldEncryptionService) — spec §10.3
   medications     String?
+  /// Ciphertext (FieldEncryptionService) — spec §10.3
   surgeries       String?
   smokes          Boolean  @default(false)
   alcohol         String?
   sleepHours      Float?
+  /// Ciphertext (FieldEncryptionService) — spec §10.3
   trainingHistory String?
+  /// Ciphertext (FieldEncryptionService) — spec §10.3
   notes           String?
   answeredAt      DateTime @default(now())
   version         Int      @default(1)
@@ -340,6 +347,8 @@ model MedicalClearance {
   expiresAt  DateTime?
   verifiedAt DateTime?
   verifiedBy String?
+  /// needed to pick the "most recent" one — a student can re-upload over time
+  createdAt  DateTime  @default(now())
 
   tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   student  StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)

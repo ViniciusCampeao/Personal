@@ -45,6 +45,15 @@ export const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((value) => value === 'true'),
+
+  /** Base64 AES-256 key for FieldEncryptionService (spec §10.3) — 32 bytes decoded. */
+  HEALTH_DATA_ENCRYPTION_KEY: z.string().refine((value) => {
+    try {
+      return Buffer.from(value, 'base64').length === 32;
+    } catch {
+      return false;
+    }
+  }, 'HEALTH_DATA_ENCRYPTION_KEY precisa ser 32 bytes em base64.'),
 });
 
 export type Env = z.infer<typeof envSchema>;

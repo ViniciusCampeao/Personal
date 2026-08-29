@@ -24,6 +24,8 @@ export function testEnv(overrides: Partial<Env> = {}): Env {
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY ?? process.env.MINIO_ROOT_USER ?? 'minioadmin',
     S3_SECRET_KEY: process.env.S3_SECRET_KEY ?? process.env.MINIO_ROOT_PASSWORD ?? '',
     S3_FORCE_PATH_STYLE: true,
+    HEALTH_DATA_ENCRYPTION_KEY:
+      process.env.HEALTH_DATA_ENCRYPTION_KEY ?? Buffer.alloc(32, 9).toString('base64'),
     ...overrides,
   };
 }

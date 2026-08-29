@@ -3,9 +3,10 @@
 Monolito modular NestJS + PWA React, monorepo pnpm.
 Especificação completa em [`SPEC-personal-trainer.md`](./SPEC-personal-trainer.md).
 
-**Estado: M0 — Fundação.** Monorepo, Docker Compose, schema Prisma completo, migration
-inicial, seed e CI. Autenticação, biblioteca de exercícios, programas e execução vêm a
-partir do M1.
+**Estado: completo.** Backend (M0–M8) e frontend (F1–F8) implementados: auth,
+biblioteca de exercícios, programas, execução offline-first, avaliações, LGPD,
+dashboard do trainer, editor de programas e PWA com Web Push.
+Guia de uso em [`docs/COMO-USAR.md`](./docs/COMO-USAR.md).
 
 ---
 

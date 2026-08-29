@@ -295,7 +295,7 @@ describe('Progress (e2e)', () => {
       expect(res.body).toHaveLength(1);
       expect(res.body[0].expectedSessions).toBe(2); // day A + day B
       expect(res.body[0].completedSessions).toBe(3); // 1 on day A + 2 on day B
-      expect(res.body[0].adherencePct).toBeCloseTo(1.5, 5);
+      expect(res.body[0].adherenceRatio).toBeCloseTo(1.5, 5);
     });
   });
 

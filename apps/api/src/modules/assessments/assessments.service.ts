@@ -268,6 +268,7 @@ export class AssessmentsService {
 
     return {
       ...this.toSummaryDto(row),
+      studentId: row.studentId,
       heightCm: row.heightCm,
       fatMassKg: row.fatMassKg,
       leanMassKg: row.leanMassKg,

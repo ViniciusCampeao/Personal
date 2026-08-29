@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type equipments, type movementPatterns } from './exercises';
-import { setTypeSchema, type setTypes } from './programs';
+import { setTypeSchema, type PrescribedSetDto, type setTypes, type techniques } from './programs';
 
 /** Mirrors the Prisma `PrType` enum — response-only, never a request field. */
 export const prTypes = ['MAX_LOAD', 'MAX_REPS', 'EST_1RM', 'MAX_SET_VOLUME'] as const;
@@ -130,6 +130,17 @@ export interface TodayPrescribedExerciseDto {
   movementPattern: (typeof movementPatterns)[number];
   orderIndex: number;
   groupKey: string | null;
+  groupOrder: number | null;
+  technique: (typeof techniques)[number];
+  restSeconds: number | null;
+  tempo: string | null;
+  notes: string | null;
+  /**
+   * The prescription itself — how many sets, in what rep range, at what target load.
+   * It travels with `/me/today` because the execution screen has to render it with no
+   * network, and the student has no access to `GET /programs/:id` (trainer-only).
+   */
+  sets: PrescribedSetDto[];
   lastPerformance: LastPerformanceDto | null;
 }
 
@@ -146,6 +157,7 @@ export interface TodayResponseDto {
 export interface PersonalRecordDto {
   id: string;
   exerciseId: string;
+  exerciseName: string;
   type: (typeof prTypes)[number];
   value: number;
   reps: number | null;

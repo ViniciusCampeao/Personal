@@ -149,8 +149,8 @@ export class ProgressService {
 
     return weekStarts.map((weekStart) => {
       const completedSessions = completedByWeek.get(weekStart) ?? 0;
-      const adherencePct = expectedSessions > 0 ? completedSessions / expectedSessions : 0;
-      return { weekStart, completedSessions, expectedSessions, adherencePct };
+      const adherenceRatio = expectedSessions > 0 ? completedSessions / expectedSessions : 0;
+      return { weekStart, completedSessions, expectedSessions, adherenceRatio };
     });
   }
 
@@ -164,11 +164,15 @@ export class ProgressService {
     const rows = await this.db.personalRecord.findMany({
       where: { studentId },
       orderBy: { achievedAt: 'desc' },
+      // The name travels with the record: a PR is always shown as "Supino reto — 80 kg",
+      // and making every caller resolve the id would be a second round-trip for nothing.
+      include: { exercise: { select: { name: true } } },
     });
 
     return rows.map((row) => ({
       id: row.id,
       exerciseId: row.exerciseId,
+      exerciseName: row.exercise.name,
       type: row.type,
       value: row.value,
       reps: row.reps,

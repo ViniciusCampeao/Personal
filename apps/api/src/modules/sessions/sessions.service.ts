@@ -190,6 +190,7 @@ export class SessionsService {
       orderBy: { orderIndex: 'asc' },
       include: {
         exercise: { select: { id: true, name: true, equipment: true, movementPattern: true } },
+        sets: { orderBy: { setNumber: 'asc' } },
       },
     });
 
@@ -211,6 +212,24 @@ export class SessionsService {
         movementPattern: pe.exercise.movementPattern,
         orderIndex: pe.orderIndex,
         groupKey: pe.groupKey,
+        groupOrder: pe.groupOrder,
+        technique: pe.technique,
+        restSeconds: pe.restSeconds,
+        tempo: pe.tempo,
+        notes: pe.notes,
+        sets: pe.sets.map((set) => ({
+          id: set.id,
+          setNumber: set.setNumber,
+          setType: set.setType,
+          repsMin: set.repsMin,
+          repsMax: set.repsMax,
+          targetLoadKg: set.targetLoadKg,
+          targetRir: set.targetRir,
+          targetRpe: set.targetRpe,
+          targetSeconds: set.targetSeconds,
+          targetDistanceM: set.targetDistanceM,
+          restSecondsOverride: set.restSecondsOverride,
+        })),
         lastPerformance,
       });
     }

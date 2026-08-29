@@ -9,3 +9,5 @@ export * from './assessments';
 export * from './notifications';
 export * from './checkins';
 export * from './dashboard';
+export * from './me';
+export * from './students';

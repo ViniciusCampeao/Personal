@@ -235,6 +235,21 @@ describe('Sessions (e2e)', () => {
       expect(res.body.exercises[0].exerciseId).toBe(exerciseAId);
       expect(res.body.exercises[0].lastPerformance).toBeNull();
     });
+
+    it('carries the prescription itself, which the student cannot fetch anywhere else', () => {
+      // `GET /programs/:id` is trainer-only, and the execution screen has to render
+      // "how many sets, at what load" with no network at all.
+      return request(app.getHttpServer())
+        .get('/api/v1/me/today')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.exercises[0].sets).toEqual([
+            expect.objectContaining({ setNumber: 1, targetLoadKg: 60, setType: 'WORK' }),
+          ]);
+          expect(res.body.exercises[0].technique).toBe('NORMAL');
+        });
+    });
   });
 
   describe('session lifecycle', () => {

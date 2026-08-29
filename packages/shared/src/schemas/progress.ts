@@ -41,7 +41,12 @@ export interface AdherenceWeekDto {
   weekStart: string;
   completedSessions: number;
   expectedSessions: number;
-  adherencePct: number;
+  /**
+   * Completed over expected, as a ratio — and it can exceed 1 when a student trains
+   * more than the program prescribes. Named `Ratio`, not `Pct`, because reading 0.75
+   * as "0.75%" is the mistake this field invites.
+   */
+  adherenceRatio: number;
 }
 
 export interface ProgressionSuggestionDto {

@@ -75,7 +75,7 @@ export class DashboardService {
         trainerId,
         Role.TRAINER,
       );
-      const avgAdherence = weeks.reduce((sum, w) => sum + w.adherencePct, 0) / weeks.length;
+      const avgAdherence = weeks.reduce((sum, w) => sum + w.adherenceRatio, 0) / weeks.length;
       if (avgAdherence < LOW_ADHERENCE_THRESHOLD) reasons.push('LOW_ADHERENCE');
 
       if (await this.isE1rmStagnant(student.userId)) reasons.push('E1RM_STAGNATION');

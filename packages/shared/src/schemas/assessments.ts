@@ -150,6 +150,8 @@ export interface AssessmentSummaryDto {
 }
 
 export interface AssessmentDetailDto extends AssessmentSummaryDto {
+  /** Whose assessment this is — the screen needs it to fetch the neighbouring one. */
+  studentId: string;
   heightCm: number | null;
   fatMassKg: number | null;
   leanMassKg: number | null;

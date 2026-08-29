@@ -23,11 +23,14 @@ import { ExercisesModule } from './modules/exercises/exercises.module';
 import { HealthModule } from './modules/health/health.module';
 import { InvitesModule } from './modules/invites/invites.module';
 import { JobsModule } from './jobs/jobs.module';
+import { LegalModule } from './modules/legal/legal.module';
+import { MeModule } from './modules/me/me.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { ProgressModule } from './modules/progress/progress.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
+import { StudentsModule } from './modules/students/students.module';
 
 @Module({
   imports: [
@@ -58,9 +61,12 @@ import { SessionsModule } from './modules/sessions/sessions.module';
     PushModule,
     AuthCommonModule,
     AuthModule,
+    MeModule,
+    LegalModule,
     InvitesModule,
     ExercisesModule,
     MediaModule,
+    StudentsModule,
     ProgramsModule,
     SessionsModule,
     ProgressModule,

@@ -142,3 +142,62 @@ export interface PersonalRecordDto {
   reps: number | null;
   achievedAt: string;
 }
+
+/**
+ * `POST /sessions/sync` (spec §9) — batch replay of the offline outbox. Items
+ * reference the session by `sessionClientUuid` (not the server-assigned `id`, which
+ * the offline client never saw) and the exercise by `prescribedExerciseId` (stable
+ * across substitution, and already known client-side from a pre-fetched `/me/today`) —
+ * both get resolved server-side, in item order, within the same batch.
+ */
+export const syncItemTypes = ['START', 'LOG_SET', 'SUBSTITUTE', 'FINISH'] as const;
+
+const startSyncItemSchema = z.object({
+  type: z.literal('START'),
+  payload: startSessionSchema,
+});
+
+const logSetSyncItemSchema = z.object({
+  type: z.literal('LOG_SET'),
+  sessionClientUuid: z.string().uuid(),
+  prescribedExerciseId: z.string().uuid(),
+  payload: logSetSchema.omit({ sessionExerciseId: true }),
+});
+
+const substituteSyncItemSchema = z.object({
+  type: z.literal('SUBSTITUTE'),
+  sessionClientUuid: z.string().uuid(),
+  prescribedExerciseId: z.string().uuid(),
+  payload: substituteExerciseSchema,
+});
+
+const finishSyncItemSchema = z.object({
+  type: z.literal('FINISH'),
+  sessionClientUuid: z.string().uuid(),
+  payload: finishSessionSchema,
+});
+
+export const syncItemSchema = z.discriminatedUnion('type', [
+  startSyncItemSchema,
+  logSetSyncItemSchema,
+  substituteSyncItemSchema,
+  finishSyncItemSchema,
+]);
+export type SyncItemInput = z.infer<typeof syncItemSchema>;
+
+export const syncSessionsSchema = z.object({
+  items: z.array(syncItemSchema).min(1).max(200),
+});
+export type SyncSessionsInput = z.infer<typeof syncSessionsSchema>;
+
+export interface SyncItemResultDto {
+  index: number;
+  type: (typeof syncItemTypes)[number];
+  status: 'OK' | 'ERROR';
+  sessionId?: string;
+  error?: string;
+}
+
+export interface SyncSessionsResponseDto {
+  results: SyncItemResultDto[];
+}

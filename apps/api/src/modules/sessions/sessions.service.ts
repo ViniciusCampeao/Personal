@@ -20,6 +20,9 @@ import {
   type SetLogDto,
   type StartSessionInput,
   type SubstituteExerciseInput,
+  type SyncItemResultDto,
+  type SyncSessionsInput,
+  type SyncSessionsResponseDto,
   type TodayPrescribedExerciseDto,
   type TodayResponseDto,
 } from '@pt/shared';
@@ -328,6 +331,17 @@ export class SessionsService {
     });
     if (!sessionExercise) throw new NotFoundException('Exercício da sessão não encontrado.');
 
+    // Replaying the same substitution (offline sync retry, spec §9) is a no-op — without
+    // this, a second call would treat the already-substituted exercise as the
+    // "original" and overwrite `substitutedFromExerciseId` with the wrong value.
+    if (sessionExercise.exerciseId === input.exerciseId) {
+      const current = await this.db.sessionExercise.findUniqueOrThrow({
+        where: { id: sessionExerciseId },
+        include: { exercise: { select: { name: true } }, sets: { orderBy: { setNumber: 'asc' } } },
+      });
+      return this.toSessionExerciseDto(current);
+    }
+
     // Same rule already enforced by `ExercisesService.substitutes()` for
     // `GET /exercises/:id/substitutes` (spec §6) — reused rather than duplicated.
     const candidates = await this.exercises.substitutes(sessionExercise.exerciseId);
@@ -355,9 +369,23 @@ export class SessionsService {
     if (session.status !== 'IN_PROGRESS') {
       throw new ConflictException('A sessão já foi finalizada.');
     }
+    await this.applyFinish(session, userId, input);
+    return this.findSessionTree(sessionId);
+  }
 
+  /**
+   * The actual finish write + PR recalculation, shared by the online `finish()` (which
+   * only calls this once `IN_PROGRESS` is confirmed) and the sync path's
+   * last-write-wins reconciliation (spec §9), which may call this on an already
+   * `COMPLETED` session when the incoming data is newer.
+   */
+  private async applyFinish(
+    session: { id: string; startedAt: Date; studentId: string },
+    userId: string,
+    input: FinishSessionInput,
+  ): Promise<void> {
     const sessionExercises = await this.db.sessionExercise.findMany({
-      where: { sessionId },
+      where: { sessionId: session.id },
       include: { sets: true },
     });
 
@@ -372,7 +400,7 @@ export class SessionsService {
     );
 
     await this.db.workoutSession.update({
-      where: { id: sessionId },
+      where: { id: session.id },
       data: {
         status: 'COMPLETED',
         finishedAt: input.finishedAt,
@@ -385,8 +413,6 @@ export class SessionsService {
     });
 
     await this.recalculatePersonalRecords(userId, sessionExercises);
-
-    return this.findSessionTree(sessionId);
   }
 
   /**
@@ -532,6 +558,135 @@ export class SessionsService {
     await this.db.sessionComment.create({
       data: { tenantId, sessionId, authorId: userId, body: input.body },
     });
+  }
+
+  // ---------------------------------------------------------------- offline sync (M7)
+
+  /**
+   * Batch replay of the offline outbox (spec §9). Items are processed in order (not in
+   * parallel) because `LOG_SET`/`SUBSTITUTE`/`FINISH` reference their session by
+   * `sessionClientUuid` — resolved here to the real `id`, which only exists once this
+   * same batch's own `START` item has run. One bad item becomes an `ERROR` result, it
+   * doesn't fail the whole batch.
+   */
+  async sync(userId: string, input: SyncSessionsInput): Promise<SyncSessionsResponseDto> {
+    const results: SyncItemResultDto[] = [];
+    const resolvedSessionIds = new Map<string, string>();
+
+    for (let index = 0; index < input.items.length; index += 1) {
+      const item = input.items[index];
+      try {
+        switch (item.type) {
+          case 'START': {
+            const session = await this.start(userId, item.payload);
+            resolvedSessionIds.set(item.payload.clientUuid, session.id);
+            results.push({ index, type: item.type, status: 'OK', sessionId: session.id });
+            break;
+          }
+          case 'LOG_SET': {
+            const sessionId = await this.resolveSessionId(
+              item.sessionClientUuid,
+              userId,
+              resolvedSessionIds,
+            );
+            const sessionExercise = await this.resolveSessionExercise(
+              sessionId,
+              item.prescribedExerciseId,
+            );
+            await this.logSet(sessionId, userId, {
+              ...item.payload,
+              sessionExerciseId: sessionExercise.id,
+            });
+            results.push({ index, type: item.type, status: 'OK', sessionId });
+            break;
+          }
+          case 'SUBSTITUTE': {
+            const sessionId = await this.resolveSessionId(
+              item.sessionClientUuid,
+              userId,
+              resolvedSessionIds,
+            );
+            const sessionExercise = await this.resolveSessionExercise(
+              sessionId,
+              item.prescribedExerciseId,
+            );
+            await this.substitute(
+              sessionId,
+              sessionExercise.id,
+              userId,
+              Role.STUDENT,
+              item.payload,
+            );
+            results.push({ index, type: item.type, status: 'OK', sessionId });
+            break;
+          }
+          case 'FINISH': {
+            const sessionId = await this.resolveSessionId(
+              item.sessionClientUuid,
+              userId,
+              resolvedSessionIds,
+            );
+            await this.finishFromSync(sessionId, userId, item.payload);
+            results.push({ index, type: item.type, status: 'OK', sessionId });
+            break;
+          }
+        }
+      } catch (error) {
+        results.push({
+          index,
+          type: item.type,
+          status: 'ERROR',
+          error: error instanceof Error ? error.message : 'Erro desconhecido.',
+        });
+      }
+    }
+
+    return { results };
+  }
+
+  private async resolveSessionId(
+    sessionClientUuid: string,
+    userId: string,
+    cache: Map<string, string>,
+  ): Promise<string> {
+    const cached = cache.get(sessionClientUuid);
+    if (cached) return cached;
+
+    const session = await this.db.workoutSession.findUnique({
+      where: { clientUuid: sessionClientUuid },
+    });
+    if (!session || session.studentId !== userId) {
+      throw new NotFoundException('Sessão não encontrada.');
+    }
+    cache.set(sessionClientUuid, session.id);
+    return session.id;
+  }
+
+  private async resolveSessionExercise(sessionId: string, prescribedExerciseId: string) {
+    const sessionExercise = await this.db.sessionExercise.findFirst({
+      where: { sessionId, prescribedExerciseId },
+    });
+    if (!sessionExercise) throw new NotFoundException('Exercício da sessão não encontrado.');
+    return sessionExercise;
+  }
+
+  /**
+   * Spec §9 conflict rule — last-write-wins by `finishedAt` — applies only here, not to
+   * the online `POST /sessions/:id/finish` (which still 409s on an already-finished
+   * session; a second *online* tap should fail loudly).
+   */
+  private async finishFromSync(
+    sessionId: string,
+    userId: string,
+    input: FinishSessionInput,
+  ): Promise<void> {
+    const session = await this.ownedSession(sessionId, userId, Role.STUDENT);
+    if (session.status === 'IN_PROGRESS') {
+      await this.applyFinish(session, userId, input);
+      return;
+    }
+    if (session.finishedAt && input.finishedAt <= session.finishedAt) return;
+    await this.applyFinish(session, userId, input);
   }
 }
 

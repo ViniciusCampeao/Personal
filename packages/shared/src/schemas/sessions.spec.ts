@@ -4,6 +4,7 @@ import {
   logSetSchema,
   startSessionSchema,
   substituteExerciseSchema,
+  syncSessionsSchema,
 } from './sessions';
 
 const uuid = '11111111-1111-4111-8111-111111111111';
@@ -67,5 +68,51 @@ describe('finishSessionSchema', () => {
 describe('listSessionsQuerySchema', () => {
   it('applies the pagination default', () => {
     expect(listSessionsQuerySchema.parse({}).limit).toBe(20);
+  });
+});
+
+describe('syncSessionsSchema', () => {
+  it('accepts a full batch: start, log_set, substitute, finish', () => {
+    const result = syncSessionsSchema.safeParse({
+      items: [
+        { type: 'START', payload: { clientUuid: uuid, workoutDayId: uuid, startedAt: new Date() } },
+        {
+          type: 'LOG_SET',
+          sessionClientUuid: uuid,
+          prescribedExerciseId: uuid,
+          payload: { clientUuid: uuid, setNumber: 1, doneAt: new Date() },
+        },
+        {
+          type: 'SUBSTITUTE',
+          sessionClientUuid: uuid,
+          prescribedExerciseId: uuid,
+          payload: { exerciseId: uuid },
+        },
+        {
+          type: 'FINISH',
+          sessionClientUuid: uuid,
+          payload: { finishedAt: new Date() },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects an unknown item type', () => {
+    expect(
+      syncSessionsSchema.safeParse({ items: [{ type: 'DELETE_EVERYTHING', payload: {} }] }).success,
+    ).toBe(false);
+  });
+
+  it('rejects an empty batch', () => {
+    expect(syncSessionsSchema.safeParse({ items: [] }).success).toBe(false);
+  });
+
+  it('rejects a batch over the 200-item cap', () => {
+    const items = Array.from({ length: 201 }, () => ({
+      type: 'START' as const,
+      payload: { clientUuid: uuid, workoutDayId: uuid, startedAt: new Date() },
+    }));
+    expect(syncSessionsSchema.safeParse({ items }).success).toBe(false);
   });
 });

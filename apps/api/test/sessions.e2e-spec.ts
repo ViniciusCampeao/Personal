@@ -378,6 +378,7 @@ describe('Sessions (e2e)', () => {
       expect(comments).toHaveLength(1);
     });
 
+
     it("404s another tenant's trainer trying to read the session", async () => {
       await request(app.getHttpServer())
         .get(`/api/v1/sessions/${sessionId}`)
@@ -391,6 +392,221 @@ describe('Sessions (e2e)', () => {
         .set('Authorization', `Bearer ${trainerToken}`)
         .expect(200);
       expect(res.body.items.some((s: { id: string }) => s.id === sessionId)).toBe(true);
+    });
+  });
+
+  describe('POST /api/v1/sessions/sync (M7 offline outbox replay)', () => {
+    let dayBPrescribedExerciseId: string;
+
+    beforeAll(async () => {
+      // Day B was untouched by the earlier lifecycle block — assign it a prescribed
+      // exercise so the sync batch below has something to reference.
+      await request(app.getHttpServer())
+        .put(`/api/v1/days/${dayBId}/exercises`)
+        .set('Authorization', `Bearer ${trainerToken}`)
+        .send([
+          { exerciseId: exerciseAId, orderIndex: 0, sets: [{ setNumber: 1, targetLoadKg: 60 }] },
+        ])
+        .expect(200);
+
+      const today = await request(app.getHttpServer())
+        .get('/api/v1/me/today')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+      expect(today.body.workoutDayId).toBe(dayBId);
+      dayBPrescribedExerciseId = today.body.exercises[0].prescribedExerciseId;
+    });
+
+    it('forbids a TRAINER from syncing', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${trainerToken}`)
+        .send({
+          items: [
+            {
+              type: 'START',
+              payload: { clientUuid: randomUUID(), workoutDayId: dayBId, startedAt: new Date() },
+            },
+          ],
+        })
+        .expect(403);
+    });
+
+    it('replays a full offline batch (start, log_set, finish) resolving by clientUuid/prescribedExerciseId, and is idempotent on retry', async () => {
+      const sessionClientUuid = randomUUID();
+      const setClientUuid = randomUUID();
+      const batch = {
+        items: [
+          {
+            type: 'START',
+            payload: { clientUuid: sessionClientUuid, workoutDayId: dayBId, startedAt: new Date() },
+          },
+          {
+            type: 'LOG_SET',
+            sessionClientUuid,
+            prescribedExerciseId: dayBPrescribedExerciseId,
+            payload: {
+              clientUuid: setClientUuid,
+              setNumber: 1,
+              reps: 8,
+              loadKg: 60,
+              doneAt: new Date(),
+            },
+          },
+          {
+            type: 'FINISH',
+            sessionClientUuid,
+            payload: { finishedAt: new Date() },
+          },
+        ],
+      };
+
+      const first = await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send(batch)
+        .expect(201);
+      expect(first.body.results).toHaveLength(3);
+      expect(first.body.results.every((r: { status: string }) => r.status === 'OK')).toBe(true);
+      const syncedSessionId = first.body.results[0].sessionId;
+      expect(syncedSessionId).toBeTruthy();
+
+      // Replaying the exact same batch must not duplicate anything.
+      const replay = await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send(batch)
+        .expect(201);
+      expect(replay.body.results.every((r: { status: string }) => r.status === 'OK')).toBe(true);
+
+      const sessionCount = await prisma.workoutSession.count({
+        where: { clientUuid: sessionClientUuid },
+      });
+      expect(sessionCount).toBe(1);
+      const setCount = await prisma.setLog.count({ where: { clientUuid: setClientUuid } });
+      expect(setCount).toBe(1);
+
+      const session = await prisma.workoutSession.findUniqueOrThrow({
+        where: { id: syncedSessionId },
+      });
+      expect(session.status).toBe('COMPLETED');
+      expect(session.totalVolumeKg).toBeCloseTo(8 * 60, 5);
+    });
+
+    it('replaying a SUBSTITUTE item in the same batch does not corrupt substitutedFromExerciseId', async () => {
+      const sessionClientUuid = randomUUID();
+      const batch = {
+        items: [
+          {
+            type: 'START',
+            payload: { clientUuid: sessionClientUuid, workoutDayId: dayBId, startedAt: new Date() },
+          },
+          {
+            type: 'SUBSTITUTE',
+            sessionClientUuid,
+            prescribedExerciseId: dayBPrescribedExerciseId,
+            payload: { exerciseId: exerciseBId, reason: 'indisponível' },
+          },
+          {
+            type: 'SUBSTITUTE',
+            sessionClientUuid,
+            prescribedExerciseId: dayBPrescribedExerciseId,
+            payload: { exerciseId: exerciseBId, reason: 'indisponível' },
+          },
+        ],
+      };
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send(batch)
+        .expect(201);
+      expect(res.body.results.every((r: { status: string }) => r.status === 'OK')).toBe(true);
+
+      const sessionExercise = await prisma.sessionExercise.findFirstOrThrow({
+        where: {
+          session: { clientUuid: sessionClientUuid },
+          prescribedExerciseId: dayBPrescribedExerciseId,
+        },
+      });
+      expect(sessionExercise.exerciseId).toBe(exerciseBId);
+      expect(sessionExercise.substitutedFromExerciseId).toBe(exerciseAId);
+    });
+
+    it('applies last-write-wins by finishedAt for a FINISH replayed against an already-completed session', async () => {
+      const sessionClientUuid = randomUUID();
+      const t1 = new Date();
+      const t2 = new Date(t1.getTime() + 60_000);
+      const t0 = new Date(t1.getTime() - 60_000);
+
+      await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          items: [
+            {
+              type: 'START',
+              payload: { clientUuid: sessionClientUuid, workoutDayId: dayBId, startedAt: t1 },
+            },
+            { type: 'FINISH', sessionClientUuid, payload: { finishedAt: t1, perceivedEffort: 5 } },
+          ],
+        })
+        .expect(201);
+
+      // Older finishedAt than what's stored -> no-op.
+      await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          items: [
+            { type: 'FINISH', sessionClientUuid, payload: { finishedAt: t0, perceivedEffort: 1 } },
+          ],
+        })
+        .expect(201);
+      let session = await prisma.workoutSession.findUniqueOrThrow({
+        where: { clientUuid: sessionClientUuid },
+      });
+      expect(session.perceivedEffort).toBe(5);
+
+      // Newer finishedAt -> overwrites.
+      await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          items: [
+            { type: 'FINISH', sessionClientUuid, payload: { finishedAt: t2, perceivedEffort: 9 } },
+          ],
+        })
+        .expect(201);
+      session = await prisma.workoutSession.findUniqueOrThrow({
+        where: { clientUuid: sessionClientUuid },
+      });
+      expect(session.perceivedEffort).toBe(9);
+      expect(session.finishedAt?.getTime()).toBe(t2.getTime());
+    });
+
+    it('reports a per-item ERROR without failing the rest of the batch', async () => {
+      const goodClientUuid = randomUUID();
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/sessions/sync')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          items: [
+            {
+              type: 'START',
+              payload: { clientUuid: goodClientUuid, workoutDayId: dayBId, startedAt: new Date() },
+            },
+            {
+              type: 'LOG_SET',
+              sessionClientUuid: randomUUID(), // never started -> unresolvable
+              prescribedExerciseId: dayBPrescribedExerciseId,
+              payload: { clientUuid: randomUUID(), setNumber: 1, doneAt: new Date() },
+            },
+          ],
+        })
+        .expect(201);
+      expect(res.body.results[0].status).toBe('OK');
+      expect(res.body.results[1].status).toBe('ERROR');
     });
   });
 });

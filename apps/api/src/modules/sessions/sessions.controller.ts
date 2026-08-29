@@ -7,6 +7,7 @@ import {
   logSetSchema,
   startSessionSchema,
   substituteExerciseSchema,
+  syncSessionsSchema,
   type CreateSessionCommentInput,
   type FinishSessionInput,
   type ListSessionsQuery,
@@ -17,6 +18,8 @@ import {
   type SetLogDto,
   type StartSessionInput,
   type SubstituteExerciseInput,
+  type SyncSessionsInput,
+  type SyncSessionsResponseDto,
   type TodayResponseDto,
 } from '@pt/shared';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -95,5 +98,14 @@ export class SessionsController {
     @CurrentUser() user: RequestUser,
   ): Promise<void> {
     return this.sessions.addComment(id, user.id, user.role, body);
+  }
+
+  @Roles(Role.STUDENT)
+  @Post('sessions/sync')
+  sync(
+    @Body(new ZodValidationPipe(syncSessionsSchema)) body: SyncSessionsInput,
+    @CurrentUser() user: RequestUser,
+  ): Promise<SyncSessionsResponseDto> {
+    return this.sessions.sync(user.id, body);
   }
 }

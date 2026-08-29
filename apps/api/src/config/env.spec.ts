@@ -11,6 +11,9 @@ const MINIMUM = {
   S3_ACCESS_KEY: 'minioadmin',
   S3_SECRET_KEY: 'minioadmin-secret',
   HEALTH_DATA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+  VAPID_PUBLIC_KEY: 'test-vapid-public-key',
+  VAPID_PRIVATE_KEY: 'test-vapid-private-key',
+  VAPID_SUBJECT: 'mailto:test@example.com',
 };
 
 describe('validateEnv', () => {
@@ -52,6 +55,11 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...MINIMUM, JWT_ACCESS_TTL: '15 minutes' })).toThrow(
       /JWT_ACCESS_TTL/,
     );
+  });
+
+  it('fails loudly when VAPID_PUBLIC_KEY is missing', () => {
+    const { VAPID_PUBLIC_KEY: _omit, ...rest } = MINIMUM;
+    expect(() => validateEnv(rest)).toThrow(/VAPID_PUBLIC_KEY/);
   });
 });
 

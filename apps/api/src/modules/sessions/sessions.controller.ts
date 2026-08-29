@@ -21,6 +21,7 @@ import {
   type SyncSessionsInput,
   type SyncSessionsResponseDto,
   type TodayResponseDto,
+  type SessionCommentDto,
 } from '@pt/shared';
 import { Roles } from '../../common/auth/roles.decorator';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
@@ -98,6 +99,23 @@ export class SessionsController {
     @CurrentUser() user: RequestUser,
   ): Promise<void> {
     return this.sessions.addComment(id, user.id, user.role, body);
+  }
+
+  @Get('sessions/:id/comments')
+  listComments(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<SessionCommentDto[]> {
+    return this.sessions.listComments(id, user.id, user.role);
+  }
+
+  @Patch('sessions/:id/comments/:commentId/read')
+  markCommentRead(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<void> {
+    return this.sessions.markCommentRead(id, commentId, user.id, user.role);
   }
 
   @Roles(Role.STUDENT)

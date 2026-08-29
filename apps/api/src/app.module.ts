@@ -1,12 +1,14 @@
 import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthCommonModule } from './common/auth/auth-common.module';
 import { JwtAccessGuard } from './common/auth/jwt-access.guard';
 import { RolesGuard } from './common/auth/roles.guard';
 import { PrismaModule } from './common/prisma/prisma.module';
+import { PushModule } from './common/push/push.module';
 import { RedisModule } from './common/redis/redis.module';
 import { StorageModule } from './common/storage/storage.module';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
@@ -15,10 +17,14 @@ import { loggerOptions } from './config/logger';
 import { AnamnesisModule } from './modules/anamnesis/anamnesis.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CheckInsModule } from './modules/checkins/checkins.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ExercisesModule } from './modules/exercises/exercises.module';
 import { HealthModule } from './modules/health/health.module';
 import { InvitesModule } from './modules/invites/invites.module';
+import { JobsModule } from './jobs/jobs.module';
 import { MediaModule } from './modules/media/media.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { ProgressModule } from './modules/progress/progress.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
@@ -45,9 +51,11 @@ import { SessionsModule } from './modules/sessions/sessions.module';
         ],
       }),
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,
     StorageModule,
+    PushModule,
     AuthCommonModule,
     AuthModule,
     InvitesModule,
@@ -58,6 +66,10 @@ import { SessionsModule } from './modules/sessions/sessions.module';
     ProgressModule,
     AnamnesisModule,
     AssessmentsModule,
+    NotificationsModule,
+    CheckInsModule,
+    DashboardModule,
+    JobsModule,
     HealthModule,
   ],
   providers: [

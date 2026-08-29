@@ -52,6 +52,15 @@ export const createSessionCommentSchema = z.object({
 });
 export type CreateSessionCommentInput = z.infer<typeof createSessionCommentSchema>;
 
+export interface SessionCommentDto {
+  id: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  readAt: string | null;
+}
+
 export const listSessionsQuerySchema = z.object({
   cursor: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),

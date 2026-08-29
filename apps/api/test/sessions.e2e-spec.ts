@@ -177,6 +177,7 @@ describe('Sessions (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.notification.deleteMany({ where: { tenantId } });
     await prisma.personalRecord.deleteMany({ where: { tenantId } });
     await prisma.sessionComment.deleteMany({ where: { tenantId } });
     await prisma.setLog.deleteMany({ where: { sessionExercise: { session: { tenantId } } } });
@@ -345,6 +346,15 @@ describe('Sessions (e2e)', () => {
       expect(untouched).toBe(0);
     });
 
+    it('notifies the student for every PR earned on finish (M8)', async () => {
+      const notifications = await prisma.notification.findMany({
+        where: { userId: studentId, type: 'PR_ACHIEVED' },
+      });
+      expect(notifications).toHaveLength(4);
+      expect(notifications[0].title).toBe('Novo recorde!');
+      expect(notifications[0].sentAt).not.toBeNull();
+    });
+
     it('refuses to log a set on an already-finished session', async () => {
       await request(app.getHttpServer())
         .post(`/api/v1/sessions/${sessionId}/sets`)
@@ -378,6 +388,69 @@ describe('Sessions (e2e)', () => {
       expect(comments).toHaveLength(1);
     });
 
+    it('notifies the student when the trainer comments (M8)', async () => {
+      const notifications = await prisma.notification.findMany({
+        where: { userId: studentId, type: 'TRAINER_COMMENT' },
+      });
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe('Bom treino!');
+    });
+
+    it('lists the comments of a session with the author name', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/api/v1/sessions/${sessionId}/comments`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].body).toBe('Bom treino!');
+      expect(res.body[0].authorName).toBe('Treinador');
+      expect(res.body[0].readAt).toBeNull();
+    });
+
+    it('marks a comment read, idempotently', async () => {
+      const listed = await request(app.getHttpServer())
+        .get(`/api/v1/sessions/${sessionId}/comments`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+      const commentId = listed.body[0].id;
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/sessions/${sessionId}/comments/${commentId}/read`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+
+      const first = await prisma.sessionComment.findUnique({ where: { id: commentId } });
+      expect(first?.readAt).not.toBeNull();
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/sessions/${sessionId}/comments/${commentId}/read`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+
+      const again = await prisma.sessionComment.findUnique({ where: { id: commentId } });
+      expect(again?.readAt).toEqual(first?.readAt);
+    });
+
+    it('does not notify when the student comments on their own session', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/sessions/${sessionId}/comments`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ body: 'Senti o ombro no fim.' })
+        .expect(201);
+
+      const notifications = await prisma.notification.findMany({
+        where: { userId: studentId, type: 'TRAINER_COMMENT' },
+      });
+      expect(notifications).toHaveLength(1);
+    });
+
+    it("404s another tenant's trainer listing the comments", async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v1/sessions/${sessionId}/comments`)
+        .set('Authorization', `Bearer ${otherTenantTrainerToken}`)
+        .expect(404);
+    });
 
     it("404s another tenant's trainer trying to read the session", async () => {
       await request(app.getHttpServer())

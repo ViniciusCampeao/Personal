@@ -25,6 +25,9 @@ const ENV: Env = {
   S3_SECRET_KEY: 'minioadmin-secret',
   S3_FORCE_PATH_STYLE: true,
   HEALTH_DATA_ENCRYPTION_KEY: Buffer.alloc(32, 3).toString('base64'),
+  VAPID_PUBLIC_KEY: 'test-vapid-public-key',
+  VAPID_PRIVATE_KEY: 'test-vapid-private-key',
+  VAPID_SUBJECT: 'mailto:test@example.com',
 };
 
 function fakeConfig() {

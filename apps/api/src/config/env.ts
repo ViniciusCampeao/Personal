@@ -5,8 +5,7 @@ const durationString = z.string().regex(/^\d+[smhd]$/, 'Use um formato como "15m
 
 /**
  * Every environment variable the API reads today. Anything added here must also land in
- * the root `.env.example` (convention §14). Variables later milestones will need (VAPID)
- * live in `.env.example` but are not validated yet.
+ * the root `.env.example` (convention §14).
  */
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -54,6 +53,11 @@ export const envSchema = z.object({
       return false;
     }
   }, 'HEALTH_DATA_ENCRYPTION_KEY precisa ser 32 bytes em base64.'),
+
+  /** Web Push (spec §1, M8) — `npx web-push generate-vapid-keys`. */
+  VAPID_PUBLIC_KEY: z.string().min(1),
+  VAPID_PRIVATE_KEY: z.string().min(1),
+  VAPID_SUBJECT: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

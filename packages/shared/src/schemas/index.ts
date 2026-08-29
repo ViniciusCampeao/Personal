@@ -6,3 +6,6 @@ export * from './programs';
 export * from './sessions';
 export * from './progress';
 export * from './assessments';
+export * from './notifications';
+export * from './checkins';
+export * from './dashboard';

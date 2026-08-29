@@ -14,6 +14,7 @@ import {
 } from '@pt/shared';
 import { TENANT_PRISMA, type TenantPrismaClient } from '../../common/prisma/tenant-prisma.provider';
 import { StudentAccessService } from '../../common/students/student-access.service';
+import { mondayOfUtc, startOfWeekUtc } from '../../common/util/week';
 
 const prescribedExerciseWithTargetsInclude = {
   exercise: { select: { id: true, name: true, equipment: true, movementPattern: true } },
@@ -272,19 +273,6 @@ export class ProgressService {
       pct: suggestion.pct,
     };
   }
-}
-
-/** Midnight UTC of the Monday of `date`'s week (spec §6: "semana começa na segunda"). */
-function startOfWeekUtc(date: Date): Date {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = d.getUTCDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diffToMonday);
-  return d;
-}
-
-function mondayOfUtc(date: Date): string {
-  return startOfWeekUtc(date).toISOString().slice(0, 10);
 }
 
 function weeksAgoMondayUtc(weeks: number): Date {

@@ -26,6 +26,15 @@ export function testEnv(overrides: Partial<Env> = {}): Env {
     S3_FORCE_PATH_STYLE: true,
     HEALTH_DATA_ENCRYPTION_KEY:
       process.env.HEALTH_DATA_ENCRYPTION_KEY ?? Buffer.alloc(32, 9).toString('base64'),
+    // Real VAPID key pair (not a secret — used only so `web-push.setVapidDetails`
+    // accepts the format in e2e tests; generated with `npx web-push generate-vapid-keys`).
+    // `||`, not `??`: an unset key in the root `.env` reaches here as an empty string.
+    VAPID_PUBLIC_KEY:
+      process.env.VAPID_PUBLIC_KEY ||
+      'BEFtKvyEoi4JjJpf0unBf5CYZSTu6WMViXfI2nFMk9a9eLu7eKzsOacCReNGRSWrAITavlO26v_kkDQy6p2LyVU',
+    VAPID_PRIVATE_KEY:
+      process.env.VAPID_PRIVATE_KEY || 'XjezzdmOHj0HgGk_OxEy99-Gcf7QqLnXeEOPGXiuCbA',
+    VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:e2e@example.com',
     ...overrides,
   };
 }

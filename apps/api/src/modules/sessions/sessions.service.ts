@@ -25,10 +25,12 @@ import {
   type SyncSessionsResponseDto,
   type TodayPrescribedExerciseDto,
   type TodayResponseDto,
+  type SessionCommentDto,
 } from '@pt/shared';
 import { TENANT_PRISMA, type TenantPrismaClient } from '../../common/prisma/tenant-prisma.provider';
 import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { ExercisesService } from '../exercises/exercises.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const sessionTreeInclude = {
   exercises: {
@@ -52,6 +54,7 @@ export class SessionsService {
     @Inject(TENANT_PRISMA) private readonly db: TenantPrismaClient,
     private readonly tenantContext: TenantContextService,
     private readonly exercises: ExercisesService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ---------------------------------------------------------------- ownership
@@ -426,6 +429,7 @@ export class SessionsService {
     sessionExercises: Array<{ exerciseId: string; sets: SetLogRow[] }>,
   ): Promise<void> {
     const tenantId = this.tenantContext.getTenantId();
+    const achievedPrs: Array<{ exerciseId: string; type: PrType; value: number }> = [];
     const setsByExercise = new Map<string, SetLogRow[]>();
     for (const se of sessionExercises) {
       const qualifying = se.sets.filter((set) => countsTowardsTonnage(set.setType));
@@ -509,8 +513,36 @@ export class SessionsService {
             achievedAt: new Date(),
           },
         });
+        achievedPrs.push({ exerciseId, type: candidate.type, value: candidate.value });
       }
     }
+
+    if (achievedPrs.length > 0) await this.notifyAchievedPrs(studentId, achievedPrs);
+  }
+
+  /** One notification per `(exerciseId, type)` that improved this `finish` — exercise
+   * names are looked up in a single batched query to avoid N+1. */
+  private async notifyAchievedPrs(
+    studentId: string,
+    achievedPrs: Array<{ exerciseId: string; type: PrType; value: number }>,
+  ): Promise<void> {
+    const exerciseIds = [...new Set(achievedPrs.map((pr) => pr.exerciseId))];
+    const exerciseNames = await this.db.exercise.findMany({
+      where: { id: { in: exerciseIds } },
+      select: { id: true, name: true },
+    });
+    const nameById = new Map(exerciseNames.map((e) => [e.id, e.name]));
+
+    await Promise.all(
+      achievedPrs.map((pr) =>
+        this.notifications.notify(studentId, {
+          type: 'PR_ACHIEVED',
+          title: 'Novo recorde!',
+          body: `Novo recorde em ${nameById.get(pr.exerciseId) ?? 'exercício'}.`,
+          data: { exerciseId: pr.exerciseId, type: pr.type, value: pr.value },
+        }),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------- history + comments
@@ -553,10 +585,49 @@ export class SessionsService {
     role: Role,
     input: CreateSessionCommentInput,
   ): Promise<void> {
-    await this.ownedSession(sessionId, userId, role);
+    const session = await this.ownedSession(sessionId, userId, role);
     const tenantId = this.tenantContext.getTenantId();
     await this.db.sessionComment.create({
       data: { tenantId, sessionId, authorId: userId, body: input.body },
+    });
+
+    if (userId !== session.studentId) {
+      await this.notifications.notify(session.studentId, {
+        type: 'TRAINER_COMMENT',
+        title: 'Novo comentário do trainer',
+        body: input.body.slice(0, 200),
+        data: { sessionId },
+      });
+    }
+  }
+
+  async listComments(sessionId: string, userId: string, role: Role): Promise<SessionCommentDto[]> {
+    await this.ownedSession(sessionId, userId, role);
+    const rows = await this.db.sessionComment.findMany({
+      where: { sessionId },
+      orderBy: { createdAt: 'asc' },
+      include: { author: { select: { name: true } } },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      authorId: row.authorId,
+      authorName: row.author.name,
+      body: row.body,
+      createdAt: row.createdAt.toISOString(),
+      readAt: row.readAt?.toISOString() ?? null,
+    }));
+  }
+
+  async markCommentRead(
+    sessionId: string,
+    commentId: string,
+    userId: string,
+    role: Role,
+  ): Promise<void> {
+    await this.ownedSession(sessionId, userId, role);
+    await this.db.sessionComment.updateMany({
+      where: { id: commentId, sessionId, readAt: null },
+      data: { readAt: new Date() },
     });
   }
 

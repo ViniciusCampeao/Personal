@@ -16,6 +16,7 @@ const TABS = [
   { to: 'avaliacoes', label: 'Avaliações', end: false },
   { to: 'check-ins', label: 'Check-ins', end: false },
   { to: 'anamnese', label: 'Anamnese', end: false },
+  { to: 'dieta', label: 'Dieta', end: false },
 ] as const;
 
 /**

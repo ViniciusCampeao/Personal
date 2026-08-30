@@ -5,7 +5,9 @@ Especificação completa em [`SPEC-personal-trainer.md`](./SPEC-personal-trainer
 
 **Estado: completo.** Backend (M0–M8) e frontend (F1–F8) implementados: auth,
 biblioteca de exercícios, programas, execução offline-first, avaliações, LGPD,
-dashboard do trainer, editor de programas e PWA com Web Push.
+dashboard do trainer, editor de programas e PWA com Web Push. Além do escopo original:
+dieta (plano + comentário do aluno/trainer), agenda (treinos e reuniões) e um painel
+administrativo básico (`role: ADMIN`).
 Guia de uso em [`docs/COMO-USAR.md`](./docs/COMO-USAR.md).
 
 ---
@@ -112,9 +114,11 @@ GET /health/ready   readiness — pinga Postgres e Redis
 
 | Papel   | E-mail               | Senha         |
 | ------- | -------------------- | ------------- |
+| ADMIN   | `admin@demo.local`   | `changeme123` |
 | TRAINER | `trainer@demo.local` | `changeme123` |
 | STUDENT | `ana@demo.local`     | `changeme123` |
 | STUDENT | `bruno@demo.local`   | `changeme123` |
 
 A senha padrão só existe fora de produção: com `NODE_ENV=production` o seed aborta se
-`SEED_TRAINER_PASSWORD` e `SEED_STUDENT_PASSWORD` não estiverem definidas.
+`SEED_TRAINER_PASSWORD`, `SEED_STUDENT_PASSWORD` e `SEED_ADMIN_PASSWORD` não estiverem
+definidas.

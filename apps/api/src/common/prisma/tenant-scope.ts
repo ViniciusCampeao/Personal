@@ -29,6 +29,9 @@ export const TENANT_SCOPED_MODELS = new Set<Prisma.ModelName>([
   'Notification',
   'MediaAsset',
   'AuditLog',
+  'DietPlan',
+  'DietComment',
+  'AgendaEvent',
 ]);
 
 const CREATE_OPS = new Set(['create']);

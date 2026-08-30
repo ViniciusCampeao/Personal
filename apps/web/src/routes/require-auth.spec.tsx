@@ -79,10 +79,13 @@ describe('route guards', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(PATHS.studentHome));
   });
 
-  it('explains to an admin that there is no UI for their role', async () => {
+  it('sends an admin to the admin panel', async () => {
     bootAs('ADMIN');
+    fetchMock.on('GET', '/api/v1/admin/tenant', json({ id: 't1', name: 'Academia Demo', slug: 'demo' }));
+    fetchMock.on('GET', '/api/v1/admin/users', json([]));
+    fetchMock.on('GET', '/api/v1/admin/audit-log', json({ items: [], nextCursor: null }));
     const { router } = renderApp({ route: PATHS.root });
 
-    await waitFor(() => expect(router.state.location.pathname).toBe(PATHS.accessDenied));
+    await waitFor(() => expect(router.state.location.pathname).toBe(PATHS.admin));
   });
 });

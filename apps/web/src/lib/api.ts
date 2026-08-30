@@ -100,7 +100,11 @@ export async function apiFetch<T>(
 
   if (!response.ok) throw await toApiError(response);
   if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  // A controller returning `null`/`undefined` gets a 200 with an empty body (Nest's
+  // `isNil` reply path), not 204 — `.json()` on that throws `SyntaxError`, so read as
+  // text first and only parse when there's something to parse.
+  const text = await response.text();
+  return (text.length === 0 ? undefined : JSON.parse(text)) as T;
 }
 
 export interface HealthStatus {

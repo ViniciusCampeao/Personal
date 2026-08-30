@@ -196,6 +196,9 @@ model Tenant {
   notifications     Notification[]
   mediaAssets       MediaAsset[]
   auditLogs         AuditLog[]
+  dietPlans         DietPlan[]
+  dietComments      DietComment[]
+  agendaEvents      AgendaEvent[]
 }
 
 model User {
@@ -227,6 +230,9 @@ model User {
   notifications             Notification[]
   mediaAssets               MediaAsset[]
   auditLogs                 AuditLog[]
+  dietPlansAsTrainer        DietPlan[]         @relation("TrainerDietPlans")
+  dietComments              DietComment[]      @relation("DietCommentAuthor")
+  agendaEventsAsTrainer     AgendaEvent[]      @relation("TrainerAgendaEvents")
 
   @@unique([tenantId, email])
   @@index([tenantId, role, status])
@@ -266,6 +272,8 @@ model StudentProfile {
   personalRecords   PersonalRecord[]
   assessments       Assessment[]
   checkIns          CheckIn[]
+  dietPlans         DietPlan[]
+  agendaEvents      AgendaEvent[]
 
   @@index([tenantId, trainerId])
 }
@@ -785,4 +793,89 @@ model AuditLog {
   @@index([tenantId, entity, entityId])
   @@index([tenantId, createdAt])
   @@index([actorId])
+}
+
+enum AgendaEventType {
+  TRAINING
+  MEETING
+  OTHER
+}
+
+enum AgendaEventStatus {
+  SCHEDULED
+  DONE
+  CANCELED
+}
+
+model DietPlan {
+  id        String   @id @default(uuid())
+  tenantId  String
+  studentId String
+  trainerId String
+  title     String
+  goal      String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  trainer User           @relation("TrainerDietPlans", fields: [trainerId], references: [id], onDelete: Restrict)
+
+  meals    DietMeal[]
+  comments DietComment[]
+
+  @@index([tenantId, studentId, active])
+}
+
+model DietMeal {
+  id       String   @id @default(uuid())
+  dietId   String
+  name     String
+  time     String?
+  items    String[]
+  position Int
+
+  diet DietPlan @relation(fields: [dietId], references: [id], onDelete: Cascade)
+
+  @@index([dietId, position])
+}
+
+model DietComment {
+  id        String    @id @default(uuid())
+  tenantId  String
+  dietId    String
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  tenant Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  diet   DietPlan @relation(fields: [dietId], references: [id], onDelete: Cascade)
+  author User     @relation("DietCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, dietId, createdAt])
+  @@index([authorId])
+}
+
+model AgendaEvent {
+  id        String            @id @default(uuid())
+  tenantId  String
+  trainerId String
+  studentId String?
+  type      AgendaEventType
+  status    AgendaEventStatus @default(SCHEDULED)
+  title     String
+  notes     String?
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime          @default(now())
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainer User            @relation("TrainerAgendaEvents", fields: [trainerId], references: [id], onDelete: Cascade)
+  student StudentProfile? @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@index([tenantId, trainerId, startsAt])
+  @@index([tenantId, studentId, startsAt])
 }

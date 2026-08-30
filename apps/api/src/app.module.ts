@@ -14,11 +14,14 @@ import { StorageModule } from './common/storage/storage.module';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
 import { readEnv, type Env, validateEnv } from './config/env';
 import { loggerOptions } from './config/logger';
+import { AdminModule } from './modules/admin/admin.module';
+import { AgendaModule } from './modules/agenda/agenda.module';
 import { AnamnesisModule } from './modules/anamnesis/anamnesis.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CheckInsModule } from './modules/checkins/checkins.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { DietModule } from './modules/diet/diet.module';
 import { ExercisesModule } from './modules/exercises/exercises.module';
 import { HealthModule } from './modules/health/health.module';
 import { InvitesModule } from './modules/invites/invites.module';
@@ -75,6 +78,9 @@ import { StudentsModule } from './modules/students/students.module';
     NotificationsModule,
     CheckInsModule,
     DashboardModule,
+    DietModule,
+    AgendaModule,
+    AdminModule,
     JobsModule,
     HealthModule,
   ],

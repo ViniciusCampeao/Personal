@@ -123,6 +123,18 @@ export const routes = [
                 .NotificationsPage,
             }),
           },
+          {
+            path: 'dieta',
+            lazy: async () => ({
+              Component: (await import('@/features/diet/student-diet-page')).StudentDietPage,
+            }),
+          },
+          {
+            path: 'agenda',
+            lazy: async () => ({
+              Component: (await import('@/features/agenda/student-agenda-page')).StudentAgendaPage,
+            }),
+          },
         ],
       },
 
@@ -235,6 +247,12 @@ export const routes = [
                     .StudentAnamnesisTab,
                 }),
               },
+              {
+                path: 'dieta',
+                lazy: async () => ({
+                  Component: (await import('@/features/students/tabs/diet-tab')).StudentDietTab,
+                }),
+              },
             ],
           },
           {
@@ -288,6 +306,34 @@ export const routes = [
             lazy: async () => ({
               Component: (await import('@/features/notifications/notifications-page'))
                 .NotificationsPage,
+            }),
+          },
+          {
+            path: 'agenda',
+            lazy: async () => ({
+              Component: (await import('@/features/agenda/trainer-agenda-page')).TrainerAgendaPage,
+            }),
+          },
+        ],
+      },
+
+      {
+        path: PATHS.admin,
+        lazy: async () => {
+          const { AdminLayout } = await import('@/layouts/admin-layout');
+          return {
+            element: (
+              <RequireRole allow="ADMIN">
+                <AdminLayout />
+              </RequireRole>
+            ),
+          };
+        },
+        children: [
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('@/features/admin/admin-page')).AdminPage,
             }),
           },
         ],

@@ -11,3 +11,6 @@ export * from './checkins';
 export * from './dashboard';
 export * from './me';
 export * from './students';
+export * from './diet';
+export * from './agenda';
+export * from './admin';

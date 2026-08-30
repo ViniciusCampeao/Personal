@@ -25,6 +25,8 @@ async function main(): Promise<void> {
   const trainerEmail = requireEnv('SEED_TRAINER_EMAIL', 'trainer@demo.local');
   const trainerPassword = requireEnv('SEED_TRAINER_PASSWORD', DEFAULT_DEV_PASSWORD);
   const studentPassword = requireEnv('SEED_STUDENT_PASSWORD', DEFAULT_DEV_PASSWORD);
+  const adminEmail = requireEnv('SEED_ADMIN_EMAIL', 'admin@demo.local');
+  const adminPassword = requireEnv('SEED_ADMIN_PASSWORD', DEFAULT_DEV_PASSWORD);
 
   const tenant = await prisma.tenant.upsert({
     where: { slug: tenantSlug },
@@ -113,7 +115,22 @@ async function main(): Promise<void> {
     });
   }
 
+  const adminHash = await hashPassword(adminPassword);
+  await prisma.user.upsert({
+    where: { tenantId_email: { tenantId: tenant.id, email: adminEmail } },
+    update: { passwordHash: adminHash, status: 'ACTIVE' },
+    create: {
+      tenantId: tenant.id,
+      email: adminEmail,
+      name: 'Administrador',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      passwordHash: adminHash,
+    },
+  });
+
   console.log(`Seed concluído para o tenant "${tenant.slug}" (${tenant.id}):`);
+  console.log(`  ADMIN    ${adminEmail}`);
   console.log(`  TRAINER  ${trainerEmail}`);
   for (const student of students) console.log(`  STUDENT  ${student.email}`);
   if (trainerPassword === DEFAULT_DEV_PASSWORD) {

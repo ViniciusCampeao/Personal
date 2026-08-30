@@ -9,6 +9,7 @@ import { PATHS } from '@/routes/paths';
 const ITEMS = [
   { to: PATHS.trainerHome, label: 'Dashboard', end: true },
   { to: PATHS.trainerStudents, label: 'Alunos', end: false },
+  { to: PATHS.trainerAgenda, label: 'Agenda', end: false },
   { to: PATHS.trainerLibrary, label: 'Biblioteca', end: false },
   { to: PATHS.trainerTemplates, label: 'Templates', end: false },
 ] as const;

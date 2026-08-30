@@ -6,6 +6,8 @@ export const notificationTypes = [
   'CHECKIN_REMINDER',
   'PR_ACHIEVED',
   'TRAINER_COMMENT',
+  'DIET_COMMENT',
+  'AGENDA_EVENT',
 ] as const;
 export type NotificationType = (typeof notificationTypes)[number];
 

@@ -19,6 +19,8 @@ export const PATHS = {
   studentCheckIn: '/app/check-in',
   studentProfile: '/app/perfil',
   studentNotifications: '/app/notificacoes',
+  studentDiet: '/app/dieta',
+  studentAgenda: '/app/agenda',
   studentSessionPrefix: '/app/treino',
   studentSession: (id: string) => `/app/treino/${id}`,
 
@@ -30,6 +32,9 @@ export const PATHS = {
   trainerPrograms: '/gestao/programas',
   trainerNotifications: '/gestao/notificacoes',
   trainerProgram: (id: string) => `/gestao/programas/${id}`,
+  trainerAgenda: '/gestao/agenda',
+
+  admin: '/admin',
 } as const;
 
 /** Each persona owns a prefixed subtree, so the same screen lives at two URLs. */
@@ -37,7 +42,7 @@ export function notificationsPathFor(role: AuthenticatedUserDto['role']): string
   return role === 'TRAINER' ? PATHS.trainerNotifications : PATHS.studentNotifications;
 }
 
-/** Where a signed-in user belongs. ADMIN has no UI (spec §13). */
+/** Where a signed-in user belongs. */
 export function homePathFor(role: AuthenticatedUserDto['role']): string {
   switch (role) {
     case 'STUDENT':
@@ -45,6 +50,6 @@ export function homePathFor(role: AuthenticatedUserDto['role']): string {
     case 'TRAINER':
       return PATHS.trainerHome;
     case 'ADMIN':
-      return PATHS.accessDenied;
+      return PATHS.admin;
   }
 }

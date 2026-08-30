@@ -76,6 +76,9 @@ export function StudentHomePage() {
 
       <CheckInCard />
 
+      <NavCard to={PATHS.studentDiet} title="Dieta" description="Veja o plano montado pelo seu treinador." />
+      <NavCard to={PATHS.studentAgenda} title="Agenda" description="Seus próximos treinos e reuniões." />
+
       <AdherenceCard studentId={user?.id} />
       <LastRecordCard studentId={user?.id} />
     </div>
@@ -108,6 +111,21 @@ function CheckInCard() {
           className={cn(buttonVariants({ variant: 'secondary' }), 'self-start')}
         >
           {current.data ? 'Revisar check-in' : 'Fazer check-in'}
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Same reasoning as `CheckInCard`: no tab of its own, reached from here instead. */
+function NavCard({ to, title, description }: { to: string; title: string; description: string }) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+        <Link to={to} className={cn(buttonVariants({ variant: 'secondary' }), 'self-start')}>
+          Ver
         </Link>
       </CardContent>
     </Card>

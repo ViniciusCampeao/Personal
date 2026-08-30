@@ -110,7 +110,7 @@ jobs:
 
       - name: Create the private bucket
         run: |
-          curl -sf https://dl.min.io/client/mc/release/linux-amd64/mc -o ./mc
+          curl -sfL https://dl.min.io/client/mc/release/linux-amd64/mc -o ./mc
           chmod +x ./mc
           for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
           ./mc alias set local http://localhost:9000 "$S3_ACCESS_KEY" "$S3_SECRET_KEY"

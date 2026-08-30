@@ -13,6 +13,19 @@ env:
   # Prisma only needs the variable to exist when generating the client.
   DATABASE_URL: postgresql://personal:personal@localhost:5432/personal_test?schema=public
   REDIS_URL: redis://localhost:6379
+  # None of these are real secrets — they only satisfy env.ts validation (and, for S3,
+  # talk to the throwaway MinIO container the e2e job starts below).
+  JWT_ACCESS_SECRET: ci-jwt-access-secret-do-not-use-in-prod-000000
+  JWT_REFRESH_SECRET: ci-jwt-refresh-secret-do-not-use-in-prod-00000
+  S3_BUCKET: personal-media
+  S3_ENDPOINT: http://localhost:9000
+  S3_PUBLIC_ENDPOINT: http://localhost:9000
+  S3_ACCESS_KEY: ci-minio-access-key
+  S3_SECRET_KEY: ci-minio-secret-key
+  HEALTH_DATA_ENCRYPTION_KEY: T0BgKJICVIVsRBqtUOX+Ghs0ewdN9luNOCyJHTUxRCo=
+  VAPID_PUBLIC_KEY: BBqPeXy1RMAANs-jsR4sKUu_b0k_37fRdKAkz3wS6TcNtuJA9JH5WbG2voctXE80kXxk-F8KXU9hMVvNeVOuI6M
+  VAPID_PRIVATE_KEY: pp6F11Ia1dmMiLFeH3aZ5h8PMgq_TJ_mBeIEUK9GGNs
+  VAPID_SUBJECT: mailto:ci@example.com
 
 jobs:
   quality:
@@ -85,6 +98,24 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm db:generate
+
+      # MinIO's image needs `server /data` as its command, which the `services:` block
+      # can't pass through — so it's started by hand instead (mirrors docker-compose.yml).
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=$S3_ACCESS_KEY \
+            -e MINIO_ROOT_PASSWORD=$S3_SECRET_KEY \
+            minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
+
+      - name: Create the private bucket
+        run: |
+          curl -sf https://dl.min.io/client/mc/release/linux-amd64/mc -o ./mc
+          chmod +x ./mc
+          for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
+          ./mc alias set local http://localhost:9000 "$S3_ACCESS_KEY" "$S3_SECRET_KEY"
+          ./mc mb --ignore-existing "local/$S3_BUCKET"
+          ./mc anonymous set none "local/$S3_BUCKET"
 
       - name: Apply migrations
         run: pnpm db:deploy

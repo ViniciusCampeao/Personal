@@ -83,6 +83,9 @@ jobs:
       - name: Build shared package
         run: pnpm --filter @pt/shared build
 
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
       - name: Apply migrations
         run: pnpm db:deploy
 

@@ -4,15 +4,22 @@ import { z } from 'zod';
  * `POST /media/presign` (spec §5) is a generic upload-intent endpoint reused across
  * milestones. Each `kind` carries its own allowed MIME types and size cap.
  */
-export const presignKinds = ['exercise-video', 'assessment-photo', 'medical-clearance'] as const;
+export const presignKinds = [
+  'exercise-video',
+  'assessment-photo',
+  'medical-clearance',
+  'tenant-logo',
+] as const;
 
 const videoMimeTypes = ['video/mp4', 'video/webm', 'video/quicktime'] as const;
 const photoMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const clearanceMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'] as const;
+const logoMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const;
 
 export const MAX_EXERCISE_VIDEO_BYTES = 200 * 1024 * 1024;
 export const MAX_ASSESSMENT_PHOTO_BYTES = 15 * 1024 * 1024;
 export const MAX_MEDICAL_CLEARANCE_BYTES = 10 * 1024 * 1024;
+export const MAX_TENANT_LOGO_BYTES = 5 * 1024 * 1024;
 
 const PRESIGN_RULES: Record<
   (typeof presignKinds)[number],
@@ -21,6 +28,7 @@ const PRESIGN_RULES: Record<
   'exercise-video': { mimes: videoMimeTypes, maxBytes: MAX_EXERCISE_VIDEO_BYTES },
   'assessment-photo': { mimes: photoMimeTypes, maxBytes: MAX_ASSESSMENT_PHOTO_BYTES },
   'medical-clearance': { mimes: clearanceMimeTypes, maxBytes: MAX_MEDICAL_CLEARANCE_BYTES },
+  'tenant-logo': { mimes: logoMimeTypes, maxBytes: MAX_TENANT_LOGO_BYTES },
 };
 
 export const presignRequestSchema = z

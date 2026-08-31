@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 import { NotificationBell } from '@/components/app/notification-bell';
 import { SyncIndicator } from '@/components/app/sync-indicator';
+import { TenantBrand } from '@/components/app/tenant-brand';
 import { UserMenu } from '@/components/app/user-menu';
 import { PATHS } from '@/routes/paths';
 
@@ -70,7 +71,9 @@ export function TrainerLayout() {
 function Sidebar({ className }: { className?: string }) {
   return (
     <aside className={className}>
-      <div className="flex min-h-14 items-center px-4 text-base font-semibold">Treino</div>
+      <div className="flex min-h-14 items-center px-4 text-base font-semibold">
+        <TenantBrand />
+      </div>
       <nav aria-label="Navegação principal" className="px-2 py-2">
         <ul className="flex flex-col gap-1">
           {ITEMS.map((item) => (

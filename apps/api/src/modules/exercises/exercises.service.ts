@@ -14,8 +14,15 @@ import { slugify } from '../../common/util/slugify';
 
 const VIDEO_URL_EXPIRY_SECONDS = 300;
 
-/** What `findMany`/`findFirst` return with `include: { muscles: true }`. */
-type ExerciseWithMuscles = Prisma.ExerciseGetPayload<{ include: { muscles: true } }>;
+/**
+ * What `findMany`/`findFirst` return with `include: { muscles: true, nameOverrides: ...
+ * }`. `nameOverrides` must always be pre-filtered to the current tenant in the query
+ * itself (see `tenantFilter`'s doc comment) — same reasoning as `Exercise.tenantId`
+ * being hand-filtered rather than relying on the tenant-scope Prisma extension.
+ */
+type ExerciseWithMuscles = Prisma.ExerciseGetPayload<{
+  include: { muscles: true; nameOverrides: true };
+}>;
 
 @Injectable()
 export class ExercisesService {
@@ -39,11 +46,16 @@ export class ExercisesService {
     return { OR: [{ tenantId }, { tenantId: null }] };
   }
 
+  /** `include` clause for a tenant's private rename of a (possibly global) exercise. */
+  private nameOverrideInclude(tenantId: string): Prisma.ExerciseInclude['nameOverrides'] {
+    return { where: { tenantId } };
+  }
+
   private async toDto(exercise: ExerciseWithMuscles): Promise<ExerciseDto> {
     return {
       id: exercise.id,
       tenantId: exercise.tenantId,
-      name: exercise.name,
+      name: exercise.nameOverrides[0]?.name ?? exercise.name,
       description: exercise.description,
       instructions: exercise.instructions,
       cues: exercise.cues,
@@ -75,7 +87,7 @@ export class ExercisesService {
 
     const rows = await this.db.exercise.findMany({
       where,
-      include: { muscles: true },
+      include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
       take: query.limit + 1,
       cursor: query.cursor ? { id: query.cursor } : undefined,
@@ -95,7 +107,7 @@ export class ExercisesService {
     const tenantId = this.tenantContext.getTenantId();
     const exercise = await this.db.exercise.findFirst({
       where: { id, OR: [{ tenantId }, { tenantId: null }] },
-      include: { muscles: true },
+      include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
     });
     if (!exercise) throw new NotFoundException('Exercício não encontrado.');
     return this.toDto(exercise);
@@ -123,7 +135,7 @@ export class ExercisesService {
           // ExerciseMuscle has no tenantId column — nothing to stamp here.
           muscles: { createMany: { data: input.muscles } },
         },
-        include: { muscles: true },
+        include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
       });
       return await this.toDto(exercise);
     } catch (error) {
@@ -148,7 +160,7 @@ export class ExercisesService {
           ...(input.name && { slug: slugify(input.name) }),
           ...(muscles && { muscles: { deleteMany: {}, createMany: { data: muscles } } }),
         },
-        include: { muscles: true },
+        include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
       });
       return await this.toDto(exercise);
     } catch (error) {
@@ -157,6 +169,36 @@ export class ExercisesService {
       }
       throw error;
     }
+  }
+
+  /**
+   * The trainer's one-field rename affordance (spec follow-up): a *custom* exercise is
+   * renamed in place (same as any other field via `update`); a *global* one can't be —
+   * it's shared by every tenant — so the rename is stored as a private override instead
+   * and merged back in by `toDto`.
+   */
+  async rename(id: string, name: string): Promise<ExerciseDto> {
+    const tenantId = this.tenantContext.getTenantId();
+    const existing = await this.db.exercise.findFirst({
+      where: { id, OR: [{ tenantId }, { tenantId: null }] },
+    });
+    if (!existing) throw new NotFoundException('Exercício não encontrado.');
+
+    if (existing.tenantId === tenantId) {
+      const exercise = await this.db.exercise.update({
+        where: { id },
+        data: { name, slug: slugify(name) },
+        include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
+      });
+      return this.toDto(exercise);
+    }
+
+    await this.db.exerciseNameOverride.upsert({
+      where: { tenantId_exerciseId: { tenantId, exerciseId: id } },
+      create: { tenantId, exerciseId: id, name },
+      update: { name },
+    });
+    return this.findOne(id);
   }
 
   async substitutes(id: string): Promise<ExerciseDto[]> {
@@ -186,7 +228,11 @@ export class ExercisesService {
           OR: [{ tenantId }, { tenantId: null }],
         };
 
-    const rows = await this.db.exercise.findMany({ where, include: { muscles: true }, take: 20 });
+    const rows = await this.db.exercise.findMany({
+      where,
+      include: { muscles: true, nameOverrides: this.nameOverrideInclude(tenantId) },
+      take: 20,
+    });
     return Promise.all(rows.map((row) => this.toDto(row)));
   }
 }

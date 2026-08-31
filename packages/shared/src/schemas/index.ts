@@ -14,3 +14,4 @@ export * from './students';
 export * from './diet';
 export * from './agenda';
 export * from './admin';
+export * from './tenant';

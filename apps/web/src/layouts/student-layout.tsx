@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { BottomNav } from '@/components/app/bottom-nav';
 import { NotificationBell } from '@/components/app/notification-bell';
 import { SyncIndicator } from '@/components/app/sync-indicator';
+import { TenantBrand } from '@/components/app/tenant-brand';
 import { useSyncLoop } from '@/features/sync/use-sync';
 
 /** Mobile-first shell (spec §8: "é onde o app é usado de verdade"). */
@@ -13,7 +14,9 @@ export function StudentLayout() {
   return (
     <div className="flex min-h-full flex-col">
       <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur">
-        <span className="text-base font-semibold">Treino</span>
+        <span className="text-base font-semibold">
+          <TenantBrand />
+        </span>
         <div className="flex items-center gap-2">
           <SyncIndicator />
           <NotificationBell />

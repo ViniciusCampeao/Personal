@@ -3,11 +3,13 @@ import { Role } from '@prisma/client';
 import {
   createExerciseSchema,
   listExercisesQuerySchema,
+  renameExerciseSchema,
   updateExerciseSchema,
   type CreateExerciseInput,
   type ExerciseDto,
   type ListExercisesQuery,
   type ListExercisesResponseDto,
+  type RenameExerciseInput,
   type UpdateExerciseInput,
 } from '@pt/shared';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -48,6 +50,15 @@ export class ExercisesController {
     @Body(new ZodValidationPipe(updateExerciseSchema)) body: UpdateExerciseInput,
   ): Promise<ExerciseDto> {
     return this.exercises.update(id, body);
+  }
+
+  @Roles(Role.TRAINER)
+  @Patch(':id/name')
+  rename(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(renameExerciseSchema)) body: RenameExerciseInput,
+  ): Promise<ExerciseDto> {
+    return this.exercises.rename(id, body.name);
   }
 
   @Get(':id/substitutes')

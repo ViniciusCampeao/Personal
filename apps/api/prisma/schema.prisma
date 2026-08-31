@@ -177,9 +177,13 @@ model Tenant {
   id        String   @id @default(uuid())
   name      String
   slug      String   @unique
+  /// Brand logo shown across the app (sidebar, student portal). Presigned like every
+  /// other object — see StorageService.
+  logoKey   String?
   createdAt DateTime @default(now())
 
   users             User[]
+  exerciseNameOverrides ExerciseNameOverride[]
   studentProfiles   StudentProfile[]
   invites           Invite[]
   consents          Consent[]
@@ -401,11 +405,29 @@ model Exercise {
   sessionExercises    SessionExercise[]    @relation("SessionExercisePerformed")
   substitutedInto     SessionExercise[]    @relation("SessionExerciseSubstitutedFrom")
   personalRecords     PersonalRecord[]
+  nameOverrides       ExerciseNameOverride[]
 
   @@unique([tenantId, slug])
   @@index([tenantId, isActive])
   @@index([movementPattern, equipment])
   @@index([substitutionGroup])
+}
+
+/// A tenant's private rename of a *global* exercise (spec follow-up: the vendored
+/// library is shared, so a trainer can't just edit `Exercise.name` — that would rename
+/// it for every other tenant too). Custom (tenant-owned) exercises don't need this: the
+/// trainer already updates `Exercise.name` directly for those, same as any other field.
+model ExerciseNameOverride {
+  id         String   @id @default(uuid())
+  tenantId   String
+  exerciseId String
+  name       String
+  updatedAt  DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, exerciseId])
 }
 
 model ExerciseMuscle {

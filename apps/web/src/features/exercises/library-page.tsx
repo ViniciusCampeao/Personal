@@ -10,6 +10,7 @@ import { useDebounced } from '@/hooks/use-debounced';
 import { EQUIPMENT_LABELS, MOVEMENT_PATTERN_LABELS, MUSCLE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { ExerciseFormPanel } from './exercise-form-panel';
+import { ExerciseNameField } from './exercise-name-field';
 import { listExercises } from './exercises-api';
 
 const SCOPES = [
@@ -133,7 +134,7 @@ export function ExerciseLibraryPage() {
                     />
                   ) : null}
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="text-sm font-semibold">{exercise.name}</h2>
+                    <ExerciseNameField exercise={exercise} />
                     {exercise.tenantId ? (
                       <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] text-accent">
                         seu

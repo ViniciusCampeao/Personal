@@ -5,9 +5,14 @@ import { type FreeExerciseDbEntry } from './source-types';
  * dictionary of all ~870 names (too much code for what it's worth) — instead it
  * decomposes each name into movement/angle/grip/equipment using the same structured
  * fields `map.ts` already relies on (equipment, primaryMuscles), so it stays accurate
- * even where the free-text name is unusual. Worst case for an odd name is a muscle-group
- * fallback ("Peito com Halteres") a trainer can rename via the exercise edit screen —
- * never a raw English leftover.
+ * even where the free-text name is unusual.
+ *
+ * Any word the dictionaries don't recognize (a proper noun like "Zercher"/"JM", a
+ * variant like "Treadmill") is kept — Title Cased — rather than silently dropped, either
+ * as the whole name (nothing else was recognized either) or tacked onto the translated
+ * movement. Earlier this dropped unknown words, so every barbell squat variant collapsed
+ * onto the same "Agachamento com Barra" — a trainer can still rename any entry via the
+ * exercise edit screen, but it should not be *necessary* just to tell exercises apart.
  */
 
 const EQUIPMENT_PT: Record<string, string> = {
@@ -228,6 +233,19 @@ const EQUIPMENT_TOKENS = new Set([
 
 const STOP_WORDS = new Set(['and', 'the', 'a', 'to', 'on', 'in', 'with', 'bars', 'of', 'ab', 'an', 'full']);
 
+/** Tries `token` as-is, then its naive singular — the dictionaries only list singulars. */
+function resolveKey<T>(dict: Record<string, T>, token: string): string | undefined {
+  if (token in dict) return token;
+  const singular = token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : null;
+  return singular && singular in dict ? singular : undefined;
+}
+
+/** Unrecognized words are almost always a proper noun ("JM", "RDL") or a plain English
+ * qualifier ("Treadmill") — short tokens read better fully capitalized. */
+function titleCase(token: string): string {
+  return token.length <= 2 ? token.toUpperCase() : token[0].toUpperCase() + token.slice(1);
+}
+
 export function translateExerciseName(entry: FreeExerciseDbEntry): string {
   let low = ` ${entry.name.toLowerCase()} `;
   let movement: string | null = null;
@@ -244,26 +262,49 @@ export function translateExerciseName(entry: FreeExerciseDbEntry): string {
   const primary = entry.primaryMuscles[0] ?? null;
   const angleBits: string[] = [];
   const gripBits: string[] = [];
+  // Words none of the dictionaries recognize. Kept (not dropped) so distinct exercises
+  // that share a movement/muscle don't collapse onto the same translated name.
+  const leftover: string[] = [];
 
   for (const token of tokens) {
     if (STOP_WORDS.has(token) || EQUIPMENT_TOKENS.has(token)) continue;
-    if (!movement && token in MOVEMENT_PT) {
-      if (token === 'curl' && primary && LEG_MUSCLES.has(primary)) {
+
+    const movementKey = !movement ? resolveKey(MOVEMENT_PT, token) : undefined;
+    if (movementKey) {
+      if (movementKey === 'curl' && primary && LEG_MUSCLES.has(primary)) {
         movement = 'Flexora';
-      } else if (token === 'extension' && primary === 'quadriceps') {
+      } else if (movementKey === 'extension' && primary === 'quadriceps') {
         movement = 'Extensora';
       } else {
-        movement = MOVEMENT_PT[token];
+        movement = MOVEMENT_PT[movementKey];
       }
-    } else if (token in ANGLE_PT) {
-      angleBits.push(ANGLE_PT[token]);
-    } else if (token in GRIP_PT) {
-      gripBits.push(GRIP_PT[token]);
+      continue;
     }
+
+    const angleKey = resolveKey(ANGLE_PT, token);
+    if (angleKey) {
+      angleBits.push(ANGLE_PT[angleKey]);
+      continue;
+    }
+
+    const gripKey = resolveKey(GRIP_PT, token);
+    if (gripKey) {
+      gripBits.push(GRIP_PT[gripKey]);
+      continue;
+    }
+
+    leftover.push(token);
   }
 
   if (!movement) {
-    movement = (primary && MUSCLE_PT[primary]) || entry.name;
+    // Prefer reconstructing from the exercise's own distinguishing words over a generic
+    // muscle-group label — "Dead Bug"/"Ab Roller"/"Air Bike" stay apart instead of all
+    // three becoming "Abdômen". Only fall back to the muscle (or raw name) when the
+    // source name turned out to be nothing but stop words/equipment terms.
+    movement =
+      leftover.length > 0
+        ? leftover.splice(0).map(titleCase).join(' ')
+        : (primary && MUSCLE_PT[primary]) || entry.name;
   } else if (movement === 'Alongamento' && primary) {
     // Bare "stretch" swallows every named pose ("Cat Stretch", "Groin Stretch", ...) into
     // one word — qualify with the target muscle so the list stays distinguishable.
@@ -272,8 +313,14 @@ export function translateExerciseName(entry: FreeExerciseDbEntry): string {
 
   const gender = GENDER[movement] ?? 'm';
   const agreeIfNeeded = (word: string) => (GENDERED_ADJECTIVES.has(word) ? agree(word, gender) : word);
+  const leftoverSuffix = leftover.map(titleCase).join(' ');
 
-  const parts = [movement, ...angleBits.map(agreeIfNeeded), ...gripBits.map(agreeIfNeeded)];
+  const parts = [
+    movement,
+    leftoverSuffix,
+    ...angleBits.map(agreeIfNeeded),
+    ...gripBits.map(agreeIfNeeded),
+  ].filter(Boolean);
   const equipmentPt = EQUIPMENT_PT[entry.equipment ?? 'other'] ?? '';
   const result = equipmentPt ? `${parts.join(' ')} com ${equipmentPt}` : parts.join(' ');
   return result.trim();

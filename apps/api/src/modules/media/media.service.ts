@@ -11,6 +11,7 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
+  'image/svg+xml': 'svg',
   'application/pdf': 'pdf',
 };
 
@@ -29,6 +30,9 @@ const KIND_RULES: Record<
     prefix: 'medical-clearances',
     allowedRoles: [Role.TRAINER, Role.STUDENT],
   },
+  // Tenant branding is edited from the admin panel (spec follow-up) — same role as
+  // `/admin/tenant`.
+  'tenant-logo': { prefix: 'tenant-logos', allowedRoles: [Role.ADMIN] },
 };
 
 @Injectable()

@@ -7,6 +7,7 @@ import {
   type UpdateTenantInput,
 } from '@pt/shared';
 import { TENANT_PRISMA, type TenantPrismaClient } from '../../common/prisma/tenant-prisma.provider';
+import { StorageService } from '../../common/storage/storage.service';
 import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
@@ -14,21 +15,34 @@ export class AdminService {
   constructor(
     @Inject(TENANT_PRISMA) private readonly db: TenantPrismaClient,
     private readonly tenantContext: TenantContextService,
+    private readonly storage: StorageService,
   ) {}
+
+  private async toTenantDto(tenant: { id: string; name: string; slug: string; logoKey: string | null }): Promise<TenantDto> {
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.slug,
+      logoUrl: tenant.logoKey ? await this.storage.presignGet(tenant.logoKey) : null,
+    };
+  }
 
   async getTenant(): Promise<TenantDto> {
     const tenant = await this.db.tenant.findUniqueOrThrow({
       where: { id: this.tenantContext.getTenantId() },
     });
-    return { id: tenant.id, name: tenant.name, slug: tenant.slug };
+    return this.toTenantDto(tenant);
   }
 
   async updateTenant(input: UpdateTenantInput): Promise<TenantDto> {
     const tenant = await this.db.tenant.update({
       where: { id: this.tenantContext.getTenantId() },
-      data: { name: input.name },
+      data: {
+        name: input.name,
+        ...(input.logoKey !== undefined && { logoKey: input.logoKey }),
+      },
     });
-    return { id: tenant.id, name: tenant.name, slug: tenant.slug };
+    return this.toTenantDto(tenant);
   }
 
   async listUsers(): Promise<AdminUserDto[]> {

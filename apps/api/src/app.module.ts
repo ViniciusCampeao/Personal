@@ -34,6 +34,7 @@ import { ProgramsModule } from './modules/programs/programs.module';
 import { ProgressModule } from './modules/progress/progress.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { StudentsModule } from './modules/students/students.module';
+import { TenantModule } from './modules/tenant/tenant.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { StudentsModule } from './modules/students/students.module';
     DietModule,
     AgendaModule,
     AdminModule,
+    TenantModule,
     JobsModule,
     HealthModule,
   ],

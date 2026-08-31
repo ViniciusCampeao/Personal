@@ -99,6 +99,17 @@ export type CreateExerciseInput = z.infer<typeof createExerciseSchema>;
 export const updateExerciseSchema = createExerciseSchema.partial();
 export type UpdateExerciseInput = z.infer<typeof updateExerciseSchema>;
 
+/**
+ * Body of `PATCH /exercises/:id/name` — the trainer's one-field "rename" affordance
+ * (spec follow-up). Split from `updateExerciseSchema` because it's the only edit a
+ * trainer can make to a *global* exercise: the API stores it as a per-tenant override
+ * rather than mutating the shared row (see `ExerciseNameOverride` in schema.prisma).
+ */
+export const renameExerciseSchema = z.object({
+  name: z.string().trim().min(2, 'Nome muito curto.').max(120),
+});
+export type RenameExerciseInput = z.infer<typeof renameExerciseSchema>;
+
 /** Query of `GET /exercises` — cursor-based pagination (spec §5). */
 export const listExercisesQuerySchema = z.object({
   q: z.string().trim().min(1).max(120).optional(),

@@ -314,6 +314,12 @@ export const routes = [
               Component: (await import('@/features/agenda/trainer-agenda-page')).TrainerAgendaPage,
             }),
           },
+          {
+            path: 'perfil',
+            lazy: async () => ({
+              Component: (await import('@/features/profile/profile-page')).ProfilePage,
+            }),
+          },
         ],
       },
 

@@ -14,6 +14,7 @@ import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { useAuth } from '@/features/auth/auth-context';
 import { useSyncStatus } from '@/features/sync/use-sync';
+import { TenantBrandingCard } from '@/features/tenant/tenant-branding-card';
 import { DangerZone } from './danger-zone';
 import { exportMyData, fetchMyProfile, updateMyProfile } from './me-api';
 
@@ -233,6 +234,8 @@ function ProfileForm({ profile }: { profile: MyProfileDto }) {
           </CardContent>
         </Card>
       ) : null}
+
+      {profile.role === 'TRAINER' ? <TenantBrandingCard /> : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">Consentimentos</h2>

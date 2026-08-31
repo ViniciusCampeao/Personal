@@ -1,22 +1,8 @@
-import type {
-  AdminUserDto,
-  ListAuditLogResponseDto,
-  TenantDto,
-  UpdateTenantInput,
-} from '@pt/shared';
+import type { AdminUserDto, ListAuditLogResponseDto } from '@pt/shared';
 import { apiFetch } from '@/lib/api';
 
-export function fetchTenant(): Promise<TenantDto> {
-  return apiFetch<TenantDto>('/admin/tenant');
-}
-
-export function updateTenant(input: UpdateTenantInput): Promise<TenantDto> {
-  return apiFetch<TenantDto>('/admin/tenant', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-}
+// Branding (name/logo) moved to `features/tenant/tenant-api.ts`: it's no longer
+// admin-exclusive, a trainer edits it from their own profile too — see `TenantBrandingCard`.
 
 export function fetchAdminUsers(): Promise<AdminUserDto[]> {
   return apiFetch<AdminUserDto[]>('/admin/users');

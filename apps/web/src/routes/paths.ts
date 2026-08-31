@@ -33,6 +33,7 @@ export const PATHS = {
   trainerNotifications: '/gestao/notificacoes',
   trainerProgram: (id: string) => `/gestao/programas/${id}`,
   trainerAgenda: '/gestao/agenda',
+  trainerProfile: '/gestao/perfil',
 
   admin: '/admin',
 } as const;

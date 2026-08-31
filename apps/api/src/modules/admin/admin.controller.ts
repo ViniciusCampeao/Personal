@@ -18,11 +18,16 @@ import { AdminService } from './admin.service';
 export class AdminController {
   constructor(private readonly admin: AdminService) {}
 
+  // Branding (name + logo) is the one piece of "admin" a trainer also owns day-to-day —
+  // override the class-level ADMIN-only guard for just these two routes. Everything else
+  // here (user list, audit log) stays ADMIN-only.
+  @Roles(Role.ADMIN, Role.TRAINER)
   @Get('tenant')
   getTenant(): Promise<TenantDto> {
     return this.admin.getTenant();
   }
 
+  @Roles(Role.ADMIN, Role.TRAINER)
   @Patch('tenant')
   updateTenant(
     @Body(new ZodValidationPipe(updateTenantSchema)) body: UpdateTenantInput,

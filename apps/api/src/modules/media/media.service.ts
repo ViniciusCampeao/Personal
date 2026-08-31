@@ -30,9 +30,8 @@ const KIND_RULES: Record<
     prefix: 'medical-clearances',
     allowedRoles: [Role.TRAINER, Role.STUDENT],
   },
-  // Tenant branding is edited from the admin panel (spec follow-up) — same role as
-  // `/admin/tenant`.
-  'tenant-logo': { prefix: 'tenant-logos', allowedRoles: [Role.ADMIN] },
+  // Tenant branding (spec follow-up) — same roles as `GET/PATCH /admin/tenant`.
+  'tenant-logo': { prefix: 'tenant-logos', allowedRoles: [Role.ADMIN, Role.TRAINER] },
 };
 
 @Injectable()

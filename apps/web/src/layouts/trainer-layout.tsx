@@ -13,6 +13,7 @@ const ITEMS = [
   { to: PATHS.trainerAgenda, label: 'Agenda', end: false },
   { to: PATHS.trainerLibrary, label: 'Biblioteca', end: false },
   { to: PATHS.trainerTemplates, label: 'Templates', end: false },
+  { to: PATHS.trainerProfile, label: 'Perfil', end: false },
 ] as const;
 
 /** Desktop-first shell (spec §8), still usable narrow — the sidebar becomes a drawer. */

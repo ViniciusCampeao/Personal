@@ -51,6 +51,7 @@ export async function importFreeExerciseDb(prisma: PrismaClient): Promise<void> 
           loadType: exercise.loadType,
           unilateral: exercise.unilateral,
           isActive: true,
+          imageUrls: exercise.imageUrls,
           muscles: { createMany: { data: exercise.muscles } },
         },
       });

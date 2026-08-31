@@ -55,6 +55,7 @@ export class ExercisesService {
       videoUrl: exercise.videoUrl
         ? await this.storage.presignGet(exercise.videoUrl, VIDEO_URL_EXPIRY_SECONDS)
         : null,
+      imageUrls: exercise.imageUrls,
       substitutionGroup: exercise.substitutionGroup,
       isActive: exercise.isActive,
       muscles: exercise.muscles.map((m) => ({ muscle: m.muscle, role: m.role })),

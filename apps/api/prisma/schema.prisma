@@ -384,6 +384,9 @@ model Exercise {
   unilateral        Boolean         @default(false)
   videoUrl          String?
   thumbKey          String?
+  /// Public demo photos (start/end position) — unlike videoUrl/thumbKey these are plain
+  /// URLs served straight from the source, not presigned S3 keys.
+  imageUrls         String[]        @default([])
   /// exercises sharing a value are interchangeable in a session
   substitutionGroup String?
   createdById       String?

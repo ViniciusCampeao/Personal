@@ -67,9 +67,17 @@ export function ExercisePicker({ onPick, onClose }: ExercisePickerProps) {
               <button
                 type="button"
                 onClick={() => onPick(exercise)}
-                className="flex min-h-touch w-full items-center justify-between gap-3 rounded-lg px-3 text-left hover:bg-surface"
+                className="flex min-h-touch w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-surface"
               >
-                <span className="truncate text-sm font-medium">{exercise.name}</span>
+                {exercise.imageUrls[0] ? (
+                  <img
+                    src={exercise.imageUrls[0]}
+                    alt=""
+                    loading="lazy"
+                    className="h-9 w-9 shrink-0 rounded-md border border-border bg-surface-sunken object-cover"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{exercise.name}</span>
                 <span className="shrink-0 text-xs text-text-subtle">
                   {labelOf(EQUIPMENT_LABELS, exercise.equipment)} ·{' '}
                   {labelOf(MOVEMENT_PATTERN_LABELS, exercise.movementPattern)}

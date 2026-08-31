@@ -124,6 +124,14 @@ export function ExerciseLibraryPage() {
             <li key={exercise.id}>
               <Card>
                 <CardContent className="flex flex-col gap-2">
+                  {exercise.imageUrls[0] ? (
+                    <img
+                      src={exercise.imageUrls[0]}
+                      alt=""
+                      loading="lazy"
+                      className="h-32 w-full rounded-lg border border-border bg-surface-sunken object-cover"
+                    />
+                  ) : null}
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="text-sm font-semibold">{exercise.name}</h2>
                     {exercise.tenantId ? (

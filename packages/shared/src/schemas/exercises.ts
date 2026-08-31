@@ -129,6 +129,7 @@ export interface ExerciseDto {
   loadType: (typeof loadTypes)[number];
   unilateral: boolean;
   videoUrl: string | null;
+  imageUrls: string[];
   substitutionGroup: string | null;
   isActive: boolean;
   muscles: ExerciseMuscleDto[];

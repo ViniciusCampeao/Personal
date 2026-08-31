@@ -6,6 +6,9 @@ import {
 } from '@prisma/client';
 import { slugify } from '../../src/common/util/slugify';
 import { type FreeExerciseDbEntry } from './source-types';
+import { translateExerciseName } from './translate';
+
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
 
 /**
  * The source has no `movementPattern` equivalent. Priority-ordered keyword match on the
@@ -99,6 +102,7 @@ export interface MappedExercise {
   loadType: LoadType;
   unilateral: boolean;
   muscles: Array<{ muscle: MuscleGroup; role: 'PRIMARY' | 'SECONDARY' }>;
+  imageUrls: string[];
 }
 
 export function mapExercise(entry: FreeExerciseDbEntry): MappedExercise {
@@ -119,13 +123,16 @@ export function mapExercise(entry: FreeExerciseDbEntry): MappedExercise {
   addMuscles(entry.secondaryMuscles, 'SECONDARY');
 
   return {
+    // Derived from the original English name so slugs stay stable across re-imports
+    // regardless of how the translation rules evolve.
     slug: slugify(entry.name),
-    name: entry.name,
+    name: translateExerciseName(entry),
     instructions: entry.instructions.length > 0 ? entry.instructions.join(' ') : null,
     movementPattern: mapMovementPattern(entry),
     equipment,
     loadType: mapLoadType(equipment),
     unilateral: mapUnilateral(entry.name),
     muscles,
+    imageUrls: entry.images.map((path) => `${IMAGE_BASE_URL}/${path}`),
   };
 }

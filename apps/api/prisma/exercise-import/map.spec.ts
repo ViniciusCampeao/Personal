@@ -1,10 +1,10 @@
-import { mapEquipment, mapExercise, mapMovementPattern, mapMuscle, mapUnilateral } from './map';
+import { mapExercise, mapLoadType, mapMuscle, mapUnilateral } from './map';
 import { type FreeExerciseDbEntry } from './source-types';
 
 function entry(overrides: Partial<FreeExerciseDbEntry>): FreeExerciseDbEntry {
   return {
     id: 'Test_Exercise',
-    name: 'Test Exercise',
+    name: 'Barbell Squat', // in the catalog, so mapExercise returns a row by default
     force: null,
     level: 'beginner',
     mechanic: null,
@@ -18,47 +18,11 @@ function entry(overrides: Partial<FreeExerciseDbEntry>): FreeExerciseDbEntry {
   };
 }
 
-describe('mapMovementPattern', () => {
-  it('recognizes a squat by name', () => {
-    expect(mapMovementPattern(entry({ name: 'Barbell Back Squat' }))).toBe('SQUAT');
-  });
-
-  it('recognizes a deadlift as a hinge', () => {
-    expect(mapMovementPattern(entry({ name: 'Romanian Deadlift' }))).toBe('HINGE');
-  });
-
-  it('maps isolation mechanic when no keyword matches', () => {
-    expect(mapMovementPattern(entry({ name: 'Barbell Curl', mechanic: 'isolation' }))).toBe(
-      'ISOLATION',
-    );
-  });
-
-  it('maps stretching category to mobility', () => {
-    expect(mapMovementPattern(entry({ name: 'Hamstring Stretch', category: 'stretching' }))).toBe(
-      'MOBILITY',
-    );
-  });
-
-  it('maps cardio/plyometrics/strongman category to conditioning', () => {
-    expect(mapMovementPattern(entry({ name: 'Box Jump', category: 'plyometrics' }))).toBe(
-      'CONDITIONING',
-    );
-  });
-
-  it('falls back to isolation when nothing else matches', () => {
-    expect(mapMovementPattern(entry({ name: 'Something Unusual' }))).toBe('ISOLATION');
-  });
-});
-
-describe('mapEquipment', () => {
-  it('maps known source values', () => {
-    expect(mapEquipment('body only')).toBe('BODYWEIGHT');
-    expect(mapEquipment('e-z curl bar')).toBe('BARBELL');
-  });
-
-  it('falls back to OTHER for null or unknown', () => {
-    expect(mapEquipment(null)).toBe('OTHER');
-    expect(mapEquipment('something-new')).toBe('OTHER');
+describe('mapLoadType', () => {
+  it('loads bodyweight and cardio differently from external weight', () => {
+    expect(mapLoadType('BODYWEIGHT')).toBe('BODYWEIGHT');
+    expect(mapLoadType('CARDIO_MACHINE')).toBe('TIME');
+    expect(mapLoadType('BARBELL')).toBe('EXTERNAL');
   });
 });
 
@@ -82,21 +46,36 @@ describe('mapUnilateral', () => {
 });
 
 describe('mapExercise', () => {
+  it('skips an exercise the catalog does not admit', () => {
+    expect(mapExercise(entry({ name: 'Circus Bell' }))).toBeNull();
+  });
+
+  it('takes name, pattern and equipment from the catalog, not from the source', () => {
+    // The source calls this one `machine`; the catalog is what knows it is a Smith bar.
+    const result = mapExercise(entry({ name: 'Smith Machine Squat', equipment: 'machine' }));
+    expect(result).toMatchObject({
+      name: 'Agachamento no Smith',
+      movementPattern: 'SQUAT',
+      equipment: 'SMITH',
+      loadType: 'EXTERNAL',
+    });
+  });
+
   it('dedupes a muscle that appears in both primary and secondary, keeping PRIMARY', () => {
     const result = mapExercise(
       entry({ primaryMuscles: ['chest'], secondaryMuscles: ['chest', 'triceps'] }),
     );
-    expect(result.muscles).toEqual([
+    expect(result?.muscles).toEqual([
       { muscle: 'CHEST', role: 'PRIMARY' },
       { muscle: 'TRICEPS', role: 'SECONDARY' },
     ]);
   });
 
-  it('joins multi-step instructions and slugifies the name', () => {
+  it('joins multi-step instructions and slugifies the English name', () => {
     const result = mapExercise(
       entry({ name: 'Air Bike', instructions: ['Step one.', 'Step two.'] }),
     );
-    expect(result.slug).toBe('air-bike');
-    expect(result.instructions).toBe('Step one. Step two.');
+    expect(result?.slug).toBe('air-bike');
+    expect(result?.instructions).toBe('Step one. Step two.');
   });
 });

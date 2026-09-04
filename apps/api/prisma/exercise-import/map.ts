@@ -5,63 +5,26 @@ import {
   type MuscleGroup,
 } from '@prisma/client';
 import { slugify } from '../../src/common/util/slugify';
+import { CATALOG } from './catalog';
 import { type FreeExerciseDbEntry } from './source-types';
-import { translateExerciseName } from './translate';
 
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
 
 /**
- * The source has no `movementPattern` equivalent. Priority-ordered keyword match on the
- * exercise name (most reliable signal), falling back to `category`/`mechanic`/`force`.
- * Not perfectly accurate for all ~870 entries by design (see M2 plan) — a trainer can
- * correct any entry later via `PATCH /exercises/:id`.
+ * Turns a source entry into a row, for the entries the catalog admits.
+ *
+ * Name, movement pattern and equipment come from `catalog.ts` — written by hand, because
+ * deriving them from the English name (a token-swap translator and a regex over the name)
+ * is what produced "Extensora Leg Leg Unilateral com Máquina" filed under "Isolamento".
+ * Everything the source *does* state reliably — muscles, images, instructions — still
+ * comes straight from it.
  */
-const NAME_PATTERNS: Array<[RegExp, MovementPattern]> = [
-  [/\bsquat\b/i, 'SQUAT'],
-  [/\b(deadlift|rdl|good\s*morning)\b/i, 'HINGE'],
-  [/\b(lunge|split\s*squat|step[\s-]?up)\b/i, 'LUNGE'],
-  [/\b(farmer|\bcarry\b|yoke)\b/i, 'CARRY'],
-  [/\b(twist|rotation|chop|russian\b)\b/i, 'ROTATION'],
-  [/\b(pulldown|pull[\s-]?up|chin[\s-]?up|lat\s*pull)\b/i, 'VERTICAL_PULL'],
-  [/\b(overhead\s*press|shoulder\s*press|military\s*press|push\s*press)\b/i, 'VERTICAL_PUSH'],
-  [/\brow\b/i, 'HORIZONTAL_PULL'],
-  [/\b(bench|chest\s*press|push[\s-]?up|dip|fly|flye)\b/i, 'HORIZONTAL_PUSH'],
-];
-
-export function mapMovementPattern(entry: FreeExerciseDbEntry): MovementPattern {
-  for (const [pattern, movementPattern] of NAME_PATTERNS) {
-    if (pattern.test(entry.name)) return movementPattern;
-  }
-  if (entry.category === 'stretching') return 'MOBILITY';
-  if (['cardio', 'plyometrics', 'strongman'].includes(entry.category)) return 'CONDITIONING';
-  if (entry.mechanic === 'isolation') return 'ISOLATION';
-  if (entry.force === 'push') return 'HORIZONTAL_PUSH';
-  if (entry.force === 'pull') return 'HORIZONTAL_PULL';
-  return 'ISOLATION';
-}
-
-const EQUIPMENT_MAP: Record<string, Equipment> = {
-  'body only': 'BODYWEIGHT',
-  barbell: 'BARBELL',
-  dumbbell: 'DUMBBELL',
-  kettlebells: 'KETTLEBELL',
-  cable: 'CABLE',
-  machine: 'MACHINE',
-  bands: 'BAND',
-  'exercise ball': 'OTHER',
-  'foam roll': 'OTHER',
-  'medicine ball': 'MEDICINE_BALL',
-  'e-z curl bar': 'BARBELL',
-  other: 'OTHER',
-};
-
-export function mapEquipment(source: string | null): Equipment {
-  if (!source) return 'OTHER';
-  return EQUIPMENT_MAP[source] ?? 'OTHER';
-}
 
 export function mapLoadType(equipment: Equipment): LoadType {
-  return equipment === 'BODYWEIGHT' ? 'BODYWEIGHT' : 'EXTERNAL';
+  if (equipment === 'BODYWEIGHT') return 'BODYWEIGHT';
+  // A treadmill or bike set is prescribed in minutes; asking for kilos makes no sense.
+  if (equipment === 'CARDIO_MACHINE') return 'TIME';
+  return 'EXTERNAL';
 }
 
 export function mapUnilateral(name: string): boolean {
@@ -105,8 +68,11 @@ export interface MappedExercise {
   imageUrls: string[];
 }
 
-export function mapExercise(entry: FreeExerciseDbEntry): MappedExercise {
-  const equipment = mapEquipment(entry.equipment);
+/** `null` when the entry is outside the curated catalog — the import skips it. */
+export function mapExercise(entry: FreeExerciseDbEntry): MappedExercise | null {
+  const curated = CATALOG[entry.name];
+  if (!curated) return null;
+
   const muscles: MappedExercise['muscles'] = [];
   const seen = new Set<MuscleGroup>();
 
@@ -124,13 +90,13 @@ export function mapExercise(entry: FreeExerciseDbEntry): MappedExercise {
 
   return {
     // Derived from the original English name so slugs stay stable across re-imports
-    // regardless of how the translation rules evolve.
+    // regardless of how the Portuguese name is later edited.
     slug: slugify(entry.name),
-    name: translateExerciseName(entry),
+    name: curated.name,
     instructions: entry.instructions.length > 0 ? entry.instructions.join(' ') : null,
-    movementPattern: mapMovementPattern(entry),
-    equipment,
-    loadType: mapLoadType(equipment),
+    movementPattern: curated.pattern,
+    equipment: curated.equipment,
+    loadType: mapLoadType(curated.equipment),
     unilateral: mapUnilateral(entry.name),
     muscles,
     imageUrls: entry.images.map((path) => `${IMAGE_BASE_URL}/${path}`),

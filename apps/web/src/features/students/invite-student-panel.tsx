@@ -107,14 +107,20 @@ export function InviteStudentPanel({ onDone }: { onDone: () => void }) {
     >
       <h2 className="text-base font-semibold">Convidar aluno</h2>
       <p className="text-sm text-text-muted">
-        Informe o e-mail ou o telefone. O aluno cria a própria senha ao aceitar.
+        Nada é enviado daqui: ao criar, o link e o QR code aparecem nesta tela para você mandar como
+        preferir. E-mail ou telefone servem para você saber depois de quem é cada convite — o aluno
+        cria a própria senha ao aceitar.
       </p>
 
       {errors.root?.serverError ? (
         <Alert variant="error">{errors.root.serverError.message}</Alert>
       ) : null}
 
-      <Field label="E-mail" error={errors.email?.message}>
+      <Field
+        label="E-mail"
+        error={errors.email?.message}
+        hint="Vira o login do aluno, e ele não poderá alterar. Em branco, ele escolhe o dele no cadastro."
+      >
         {(field) => (
           <Input
             {...field}
@@ -126,7 +132,7 @@ export function InviteStudentPanel({ onDone }: { onDone: () => void }) {
         )}
       </Field>
 
-      <Field label="Telefone" error={errors.phone?.message}>
+      <Field label="Telefone" error={errors.phone?.message} hint="Só pré-preenche o cadastro dele.">
         {(field) => <Input {...field} {...register('phone')} type="tel" inputMode="tel" />}
       </Field>
 

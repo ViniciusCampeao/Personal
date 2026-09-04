@@ -41,12 +41,19 @@ export class DietService {
     return row ? this.toDto(row) : null;
   }
 
-  async create(studentId: string, trainerId: string, input: UpsertDietPlanInput): Promise<DietPlanDto> {
+  async create(
+    studentId: string,
+    trainerId: string,
+    input: UpsertDietPlanInput,
+  ): Promise<DietPlanDto> {
     await this.studentAccess.assertCanAccessStudent(studentId, trainerId, Role.TRAINER);
     const tenantId = this.tenantContext.getTenantId();
 
     // Only one active plan per student: creating a new one retires the previous.
-    await this.db.dietPlan.updateMany({ where: { studentId, active: true }, data: { active: false } });
+    await this.db.dietPlan.updateMany({
+      where: { studentId, active: true },
+      data: { active: false },
+    });
 
     const row = await this.db.dietPlan.create({
       data: {
@@ -76,7 +83,11 @@ export class DietService {
     return this.toDto(row);
   }
 
-  async update(dietId: string, trainerId: string, input: UpsertDietPlanInput): Promise<DietPlanDto> {
+  async update(
+    dietId: string,
+    trainerId: string,
+    input: UpsertDietPlanInput,
+  ): Promise<DietPlanDto> {
     await this.ownedPlan(dietId, trainerId, Role.TRAINER);
 
     await this.db.dietMeal.deleteMany({ where: { dietId } });

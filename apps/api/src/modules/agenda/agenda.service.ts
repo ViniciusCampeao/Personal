@@ -71,7 +71,11 @@ export class AgendaService {
     return this.toDto(row);
   }
 
-  async update(eventId: string, trainerId: string, input: UpsertAgendaEventInput): Promise<AgendaEventDto> {
+  async update(
+    eventId: string,
+    trainerId: string,
+    input: UpsertAgendaEventInput,
+  ): Promise<AgendaEventDto> {
     await this.owned(eventId, trainerId);
     if (input.studentId) {
       await this.studentAccess.assertCanAccessStudent(input.studentId, trainerId, Role.TRAINER);

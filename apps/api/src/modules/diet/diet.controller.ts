@@ -26,7 +26,10 @@ export class DietController {
 
   @Roles(Role.TRAINER)
   @Get('students/:id/diet-plans')
-  listForStudent(@Param('id') studentId: string, @CurrentUser() user: RequestUser): Promise<DietPlanDto[]> {
+  listForStudent(
+    @Param('id') studentId: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<DietPlanDto[]> {
     return this.diet.listForStudent(studentId, user.id);
   }
 
@@ -57,7 +60,10 @@ export class DietController {
   }
 
   @Get('diet-plans/:id/comments')
-  listComments(@Param('id') dietId: string, @CurrentUser() user: RequestUser): Promise<DietCommentDto[]> {
+  listComments(
+    @Param('id') dietId: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<DietCommentDto[]> {
     return this.diet.listComments(dietId, user.id, user.role);
   }
 

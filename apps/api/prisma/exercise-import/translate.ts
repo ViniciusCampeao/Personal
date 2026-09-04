@@ -231,7 +231,20 @@ const EQUIPMENT_TOKENS = new Set([
   'ez',
 ]);
 
-const STOP_WORDS = new Set(['and', 'the', 'a', 'to', 'on', 'in', 'with', 'bars', 'of', 'ab', 'an', 'full']);
+const STOP_WORDS = new Set([
+  'and',
+  'the',
+  'a',
+  'to',
+  'on',
+  'in',
+  'with',
+  'bars',
+  'of',
+  'ab',
+  'an',
+  'full',
+]);
 
 /** Tries `token` as-is, then its naive singular — the dictionaries only list singulars. */
 function resolveKey<T>(dict: Record<string, T>, token: string): string | undefined {
@@ -312,7 +325,8 @@ export function translateExerciseName(entry: FreeExerciseDbEntry): string {
   }
 
   const gender = GENDER[movement] ?? 'm';
-  const agreeIfNeeded = (word: string) => (GENDERED_ADJECTIVES.has(word) ? agree(word, gender) : word);
+  const agreeIfNeeded = (word: string) =>
+    GENDERED_ADJECTIVES.has(word) ? agree(word, gender) : word;
   const leftoverSuffix = leftover.map(titleCase).join(' ');
 
   const parts = [

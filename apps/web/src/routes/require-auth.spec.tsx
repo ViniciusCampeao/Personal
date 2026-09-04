@@ -81,7 +81,11 @@ describe('route guards', () => {
 
   it('sends an admin to the admin panel', async () => {
     bootAs('ADMIN');
-    fetchMock.on('GET', '/api/v1/admin/tenant', json({ id: 't1', name: 'Academia Demo', slug: 'demo' }));
+    fetchMock.on(
+      'GET',
+      '/api/v1/admin/tenant',
+      json({ id: 't1', name: 'Academia Demo', slug: 'demo' }),
+    );
     fetchMock.on('GET', '/api/v1/admin/users', json([]));
     fetchMock.on('GET', '/api/v1/admin/audit-log', json({ items: [], nextCursor: null }));
     const { router } = renderApp({ route: PATHS.root });

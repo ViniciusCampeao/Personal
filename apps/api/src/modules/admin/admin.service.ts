@@ -18,7 +18,12 @@ export class AdminService {
     private readonly storage: StorageService,
   ) {}
 
-  private async toTenantDto(tenant: { id: string; name: string; slug: string; logoKey: string | null }): Promise<TenantDto> {
+  private async toTenantDto(tenant: {
+    id: string;
+    name: string;
+    slug: string;
+    logoKey: string | null;
+  }): Promise<TenantDto> {
     return {
       id: tenant.id,
       name: tenant.name,

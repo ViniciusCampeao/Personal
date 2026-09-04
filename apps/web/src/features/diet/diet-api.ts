@@ -15,7 +15,10 @@ export function fetchDietPlansForStudent(studentId: string): Promise<DietPlanDto
   return apiFetch<DietPlanDto[]>(`/students/${studentId}/diet-plans`);
 }
 
-export function createDietPlan(studentId: string, input: UpsertDietPlanInput): Promise<DietPlanDto> {
+export function createDietPlan(
+  studentId: string,
+  input: UpsertDietPlanInput,
+): Promise<DietPlanDto> {
   return apiFetch<DietPlanDto>(`/students/${studentId}/diet-plans`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -32,6 +32,7 @@ export const TENANT_SCOPED_MODELS = new Set<Prisma.ModelName>([
   'DietPlan',
   'DietComment',
   'AgendaEvent',
+  'ExerciseNameOverride',
 ]);
 
 const CREATE_OPS = new Set(['create']);

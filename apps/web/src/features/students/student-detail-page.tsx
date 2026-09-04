@@ -1,7 +1,9 @@
 import { NavLink, Outlet, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Alert } from '@/components/ui/alert';
+import { Avatar } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/app/page-header';
 import { cn } from '@/lib/cn';
 import { formatDate, formatRelativeDay } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
@@ -37,15 +39,23 @@ export function StudentDetailPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-2">
-        <NavLink to={PATHS.trainerStudents} className="text-sm text-accent underline">
+      <header className="flex flex-col gap-3">
+        <NavLink
+          to={PATHS.trainerStudents}
+          className="self-start text-sm text-text-muted hover:text-text"
+        >
           ← Alunos
         </NavLink>
-        <h1 className="text-2xl font-semibold">{data.name}</h1>
-        <p className="text-sm text-text-muted">
-          {data.email}
-          {data.phone ? ` · ${data.phone}` : ''} · aluno desde {formatDate(data.startedAt)}
-        </p>
+        <PageHeader
+          leading={<Avatar name={data.name} />}
+          title={data.name}
+          description={
+            <>
+              {data.email}
+              {data.phone ? ` · ${data.phone}` : ''} · aluno desde {formatDate(data.startedAt)}
+            </>
+          }
+        />
         <p className="text-sm text-text-muted">
           {data.activeProgramName ? (
             <>Programa: {data.activeProgramName}</>
@@ -57,7 +67,9 @@ export function StudentDetailPage() {
             ? `último treino ${formatRelativeDay(data.lastSessionAt)}`
             : 'nunca treinou'}
           {' · '}
-          {data.totalSessions} {data.totalSessions === 1 ? 'treino' : 'treinos'}
+          <span className="tabular-nums">
+            {data.totalSessions} {data.totalSessions === 1 ? 'treino' : 'treinos'}
+          </span>
         </p>
       </header>
 

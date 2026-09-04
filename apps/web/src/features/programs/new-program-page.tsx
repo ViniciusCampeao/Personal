@@ -10,6 +10,7 @@ import { BackLink } from '@/components/app/back-link';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { fetchStudent } from '@/features/students/students-api';
+import { PageHeader } from '@/components/app/page-header';
 import { createProgram, duplicateProgram, listPrograms } from './programs-api';
 
 /**
@@ -65,10 +66,7 @@ export function NewProgramPage() {
     <div className="flex max-w-2xl flex-col gap-6">
       <BackLink label="Voltar" />
 
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">Novo programa</h1>
-        <p className="text-sm text-text-muted">Para {student.data.name}</p>
-      </header>
+      <PageHeader title="Novo programa" description={`Para ${student.data.name}`} />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold">Do zero</h2>

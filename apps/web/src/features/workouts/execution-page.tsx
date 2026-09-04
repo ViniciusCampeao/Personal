@@ -9,7 +9,8 @@ import { formatWeight } from '@/lib/format';
 import { TECHNIQUE_LABELS, labelOf } from '@/lib/labels';
 import type { LocalSession, LocalSessionExercise, LocalSet } from '@/lib/db';
 import { PATHS } from '@/routes/paths';
-import { useSyncStatus } from '@/features/sync/use-sync';
+import { SyncIndicator } from '@/components/app/sync-indicator';
+import { segmentedClass } from '@/components/ui/segmented';
 import { FinishPanel } from './components/finish-panel';
 import { NumberField } from './components/number-field';
 import { RestTimer } from './components/rest-timer';
@@ -51,7 +52,6 @@ export function WorkoutExecutionPage() {
 
 function ExecutionScreen({ session, sets }: { session: LocalSession; sets: LocalSet[] }) {
   const navigate = useNavigate();
-  const { pending } = useSyncStatus();
   const [index, setIndex] = useState(0);
   const [panel, setPanel] = useState<Panel>('none');
   const [rest, setRest] = useState<{ startedAt: number; seconds: number } | null>(null);
@@ -111,7 +111,6 @@ function ExecutionScreen({ session, sets }: { session: LocalSession; sets: Local
         dayLabel={session.dayLabel}
         done={sets.length}
         total={totalPrescribed}
-        pending={pending}
         onLeave={() => navigate(PATHS.studentHome)}
       />
 
@@ -173,13 +172,11 @@ function ExecutionHeader({
   dayLabel,
   done,
   total,
-  pending,
   onLeave,
 }: {
   dayLabel: string | null;
   done: number;
   total: number;
-  pending: number;
   onLeave: () => void;
 }) {
   const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
@@ -189,11 +186,13 @@ function ExecutionHeader({
       <div className="flex min-h-14 items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 flex-col">
           <span className="truncate text-base font-semibold">{dayLabel ?? 'Treino'}</span>
-          <span className="text-xs text-text-subtle">
+          <span className="text-xs tabular-nums text-text-subtle">
             {done} de {total} séries
-            {pending > 0 ? ` · ${pending} a sincronizar` : ''}
           </span>
         </div>
+        {/* The queue state is the one thing on this screen the student cannot infer from
+            anything else, so it gets the badge rather than a line of subtitle grey. */}
+        <SyncIndicator />
         <Button variant="ghost" onClick={onLeave}>
           Sair
         </Button>
@@ -276,7 +275,7 @@ function ExerciseCard({
         ) : null}
         {exercise.notes ? <p className="text-sm text-text-muted">{exercise.notes}</p> : null}
         {exercise.lastPerformance ? (
-          <p className="text-xs text-text-subtle">
+          <p className="text-xs tabular-nums text-text-subtle">
             Última vez: {formatWeight(exercise.lastPerformance.loadKg ?? 0)} ×{' '}
             {exercise.lastPerformance.reps ?? '—'}
           </p>
@@ -328,7 +327,7 @@ function LoggedSets({ sets }: { sets: LocalSet[] }) {
       {sets.map((set) => (
         <li
           key={set.clientUuid}
-          className="flex items-center justify-between rounded-lg bg-surface-raised px-3 py-2 text-sm"
+          className="flex items-center justify-between rounded-field bg-surface-raised px-3 py-2 text-sm"
         >
           <span className="text-text-muted">Série {set.setNumber}</span>
           <span className="font-medium tabular-nums">
@@ -414,11 +413,9 @@ function ExerciseStrip({
                 type="button"
                 onClick={() => onSelect(index)}
                 aria-current={index === current ? 'true' : undefined}
-                className={cn(
-                  'flex min-h-touch flex-col items-start whitespace-nowrap rounded-lg border px-3 py-2 text-left',
-                  index === current
-                    ? 'border-accent bg-accent/10'
-                    : 'border-border bg-surface-raised',
+                className={segmentedClass(
+                  index === current,
+                  'flex flex-col items-start whitespace-nowrap py-2 text-left',
                 )}
               >
                 <span className="max-w-40 truncate text-sm font-medium">

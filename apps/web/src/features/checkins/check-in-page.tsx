@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { formatDate, formatWeight } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { useAuth } from '@/features/auth/auth-context';
+import { PageHeader } from '@/components/app/page-header';
 import { fetchCheckIns, fetchCurrentCheckIn, submitCheckIn } from './checkins-api';
 
 const CHECK_IN_KEY = ['me', 'check-in', 'current'];
@@ -74,14 +75,14 @@ export function CheckInPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">Check-in da semana</h1>
-        <p className="text-sm text-text-muted">
-          {current.data
+      <PageHeader
+        title="Check-in da semana"
+        description={
+          current.data
             ? `Você já respondeu esta semana (${formatDate(current.data.weekStart)}). Pode ajustar.`
-            : 'Leva menos de um minuto e ajuda seu treinador a ajustar a carga.'}
-        </p>
-      </header>
+            : 'Leva menos de um minuto e ajuda seu treinador a ajustar a carga.'
+        }
+      />
 
       {current.isPending ? (
         <Skeleton className="h-64" />
@@ -123,7 +124,7 @@ export function CheckInPage() {
               onChange={(event) => setWeight(event.target.value)}
               inputMode="decimal"
               placeholder="kg"
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           </label>
 
@@ -133,7 +134,7 @@ export function CheckInPage() {
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               rows={3}
-              className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           </label>
 

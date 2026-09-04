@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CommentThread } from '@/components/app/comment-thread';
 import { problemMessage } from '@/lib/problem';
 import { useAuth } from '@/features/auth/auth-context';
+import { PageHeader } from '@/components/app/page-header';
 import { addDietComment, fetchDietComments, fetchMyActiveDietPlan } from './diet-api';
 
 const DIET_KEY = ['me', 'diet-plan'];
@@ -31,9 +32,7 @@ export function StudentDietPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header>
-        <h1 className="text-xl font-semibold">Dieta</h1>
-      </header>
+      <PageHeader title="Dieta" description="O plano alimentar montado pelo seu treinador." />
 
       {!plan.data ? (
         <Card>
@@ -47,7 +46,9 @@ export function StudentDietPage() {
             <CardContent className="flex flex-col gap-3">
               <CardTitle>{plan.data.title}</CardTitle>
               {plan.data.goal ? <CardDescription>{plan.data.goal}</CardDescription> : null}
-              {plan.data.notes ? <p className="text-sm text-text-muted">{plan.data.notes}</p> : null}
+              {plan.data.notes ? (
+                <p className="text-sm text-text-muted">{plan.data.notes}</p>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -58,7 +59,9 @@ export function StudentDietPage() {
                   <CardContent className="flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-3">
                       <CardTitle>{meal.name}</CardTitle>
-                      {meal.time ? <span className="text-sm text-text-muted">{meal.time}</span> : null}
+                      {meal.time ? (
+                        <span className="text-sm text-text-muted">{meal.time}</span>
+                      ) : null}
                     </div>
                     <ul className="flex flex-col gap-1 text-sm text-text-muted">
                       {meal.items.map((item, index) => (

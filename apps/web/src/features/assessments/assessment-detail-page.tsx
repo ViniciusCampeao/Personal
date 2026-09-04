@@ -13,6 +13,7 @@ import {
 } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { BackLink } from '@/components/app/back-link';
+import { PageHeader } from '@/components/app/page-header';
 import { PhotoCompare } from './components/photo-compare';
 import { compareAssessments, fetchAssessment, fetchAssessments } from './assessments-api';
 
@@ -80,10 +81,7 @@ export function AssessmentDetailPage() {
     <div className="flex flex-col gap-5">
       <BackLink label="Voltar" />
 
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">{formatDate(data.assessedAt)}</h1>
-        {data.notes ? <p className="text-sm text-text-muted">{data.notes}</p> : null}
-      </header>
+      <PageHeader title={formatDate(data.assessedAt)} description={data.notes} />
 
       <div className="grid grid-cols-2 gap-3">
         <Metric label="Peso" value={data.weightKg != null ? formatWeight(data.weightKg) : '—'} />

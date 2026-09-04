@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AssessmentPhotoDto } from '@pt/shared';
 import { formatDate } from '@/lib/format';
+import { segmentedClass } from '@/components/ui/segmented';
 
 const POSE_LABELS: Record<AssessmentPhotoDto['pose'], string> = {
   FRONT: 'Frente',
@@ -45,11 +46,7 @@ export function PhotoCompare({ before, after }: PhotoCompareProps) {
               type="button"
               aria-pressed={pose === option}
               onClick={() => setPose(option)}
-              className={`min-h-touch rounded-lg border px-3 text-sm ${
-                pose === option
-                  ? 'border-accent bg-accent/10 text-text'
-                  : 'border-border bg-surface-raised text-text-muted'
-              }`}
+              className={segmentedClass(pose === option)}
             >
               {POSE_LABELS[option]}
             </button>

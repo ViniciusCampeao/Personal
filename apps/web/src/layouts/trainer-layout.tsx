@@ -42,13 +42,13 @@ export function TrainerLayout() {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Abrir menu"
             aria-expanded={drawerOpen}
-            className="flex size-touch items-center justify-center rounded-lg text-text-muted lg:hidden"
+            className="flex size-touch items-center justify-center rounded-field text-text-muted transition-colors hover:bg-white/[0.05] hover:text-text lg:hidden"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="currentColor">
               <path d="M3 6h18v2H3V6Zm0 5h18v2H3v-2Zm0 5h18v2H3v-2Z" />
@@ -72,7 +72,7 @@ export function TrainerLayout() {
 function Sidebar({ className }: { className?: string }) {
   return (
     <aside className={className}>
-      <div className="flex min-h-14 items-center px-4 text-base font-semibold">
+      <div className="flex min-h-16 items-center border-b border-border px-4">
         <TenantBrand />
       </div>
       <nav aria-label="Navegação principal" className="px-2 py-2">
@@ -84,10 +84,12 @@ function Sidebar({ className }: { className?: string }) {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    'flex min-h-touch items-center rounded-lg px-3 text-sm',
+                    // The active item keeps a bar on its inner edge: on a ground this
+                    // dark a tint alone is nearly invisible at a glance.
+                    'flex min-h-touch items-center rounded-field border-l-2 px-3 text-sm transition-colors',
                     isActive
-                      ? 'bg-accent/15 text-accent'
-                      : 'text-text-muted hover:bg-surface hover:text-text',
+                      ? 'border-accent bg-accent/10 font-medium text-accent'
+                      : 'border-transparent text-text-muted hover:bg-white/[0.04] hover:text-text',
                   )
                 }
               >

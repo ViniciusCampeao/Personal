@@ -9,16 +9,21 @@ import { Spinner } from './spinner';
  * so that screen doesn't grow a one-off button of its own.
  */
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors ' +
+  'inline-flex items-center justify-center gap-2 rounded-field font-medium ' +
+    'transition-[background-color,border-color,color,filter] duration-150 ' +
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ' +
     'disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-accent-strong text-accent-fg hover:bg-accent-strong/90',
-        secondary: 'bg-surface-raised text-text border border-border hover:border-border-strong',
-        ghost: 'text-text-muted hover:bg-surface-raised hover:text-text',
-        danger: 'bg-danger text-danger-fg hover:bg-danger/90',
+        // Hover *brightens* rather than fading to the ground: a translucent fill would let
+        // the card behind it show through and muddy the lime.
+        primary: 'bg-accent-strong text-accent-fg hover:bg-accent active:brightness-95',
+        secondary:
+          'bg-surface-raised text-text border border-border hover:border-border-strong ' +
+          'hover:bg-white/[0.04] active:bg-white/[0.02]',
+        ghost: 'text-text-muted hover:bg-white/[0.05] hover:text-text active:bg-white/[0.02]',
+        danger: 'bg-danger text-danger-fg hover:brightness-110 active:brightness-95',
       },
       size: {
         sm: 'h-9 px-3 text-sm',

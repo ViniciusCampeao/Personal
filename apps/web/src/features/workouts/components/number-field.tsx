@@ -44,7 +44,7 @@ export function NumberField({
           type="button"
           onClick={() => nudge(-step)}
           aria-label={`Diminuir ${label}`}
-          className="size-touch shrink-0 rounded-lg border border-border bg-surface-sunken text-xl leading-none text-text-muted active:bg-surface-raised"
+          className="size-touch shrink-0 rounded-field border border-border bg-surface-sunken text-xl leading-none text-text-muted active:bg-surface-raised"
         >
           −
         </button>
@@ -56,7 +56,7 @@ export function NumberField({
             // A numeric keypad on iOS needs `decimal`; `type="number"` also brings
             // scroll-wheel changes and a spinner that fight the steppers beside it.
             inputMode="decimal"
-            className="min-h-touch w-full rounded-lg border border-border bg-surface-sunken px-3 text-center text-lg font-semibold text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+            className="min-h-touch w-full rounded-field border border-border bg-surface-sunken px-3 text-center text-lg font-semibold text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
           />
           {unit ? (
             <span
@@ -71,7 +71,7 @@ export function NumberField({
           type="button"
           onClick={() => nudge(step)}
           aria-label={`Aumentar ${label}`}
-          className="size-touch shrink-0 rounded-lg border border-border bg-surface-sunken text-xl leading-none text-text-muted active:bg-surface-raised"
+          className="size-touch shrink-0 rounded-field border border-border bg-surface-sunken text-xl leading-none text-text-muted active:bg-surface-raised"
         >
           +
         </button>

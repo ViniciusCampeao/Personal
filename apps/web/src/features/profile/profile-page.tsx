@@ -15,6 +15,7 @@ import { PATHS } from '@/routes/paths';
 import { useAuth } from '@/features/auth/auth-context';
 import { useSyncStatus } from '@/features/sync/use-sync';
 import { TenantBrandingCard } from '@/features/tenant/tenant-branding-card';
+import { PageHeader } from '@/components/app/page-header';
 import { DangerZone } from './danger-zone';
 import { exportMyData, fetchMyProfile, updateMyProfile } from './me-api';
 
@@ -119,7 +120,7 @@ function ProfileForm({ profile }: { profile: MyProfileDto }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Perfil</h1>
+      <PageHeader title="Perfil" description="Seus dados, preferências e privacidade." />
 
       <section className="flex flex-col gap-4">
         <Field label="Nome">
@@ -161,7 +162,7 @@ function ProfileForm({ profile }: { profile: MyProfileDto }) {
                   {...field}
                   value={sex ?? ''}
                   onChange={(e) => setSex(e.target.value as typeof sex)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 >
                   <option value="">Não informado</option>
                   <option value="FEMALE">Feminino</option>
@@ -193,7 +194,7 @@ function ProfileForm({ profile }: { profile: MyProfileDto }) {
                   {...field}
                   value={experienceLevel}
                   onChange={(e) => setExperience(e.target.value as typeof experienceLevel)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 >
                   {Object.entries(EXPERIENCE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -243,7 +244,7 @@ function ProfileForm({ profile }: { profile: MyProfileDto }) {
           {profile.consents.map((consent) => (
             <li
               key={`${consent.type}-${consent.acceptedAt}`}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-field border border-border bg-surface-raised px-4 py-3"
             >
               <span>{CONSENT_LABELS[consent.type] ?? consent.type}</span>
               <span className="text-xs text-text-subtle">

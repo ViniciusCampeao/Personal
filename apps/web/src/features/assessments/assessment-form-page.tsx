@@ -24,6 +24,7 @@ import { formatPercent, formatWeight, todayInSaoPaulo } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { fetchStudent } from '@/features/students/students-api';
+import { PageHeader } from '@/components/app/page-header';
 
 const PROTOCOL_LABELS: Record<SkinfoldProtocol, string> = {
   NONE: 'Sem dobras',
@@ -173,10 +174,7 @@ export function AssessmentFormPage() {
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="flex flex-col gap-5">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold">Nova avaliação</h1>
-          <p className="text-sm text-text-muted">{student.data.name}</p>
-        </header>
+        <PageHeader title="Nova avaliação" description={student.data.name} />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Data">
@@ -196,7 +194,7 @@ export function AssessmentFormPage() {
                 {...field}
                 value={protocol}
                 onChange={(e) => setProtocol(e.target.value as SkinfoldProtocol)}
-                className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
               >
                 {skinfoldProtocols.map((option) => (
                   <option key={option} value={option}>
@@ -318,7 +316,7 @@ export function AssessmentFormPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           )}
         </Field>

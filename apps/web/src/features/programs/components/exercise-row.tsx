@@ -106,7 +106,7 @@ export function ExerciseRow({
                 <select
                   value={exercise.technique}
                   onChange={(event) => onChange({ ...exercise, technique: event.target.value })}
-                  className="h-10 rounded-lg border border-border bg-surface-sunken px-2 text-sm text-text"
+                  className="h-10 rounded-field border border-border bg-surface-sunken px-2 text-sm text-text"
                 >
                   {TECHNIQUES.map((technique) => (
                     <option key={technique} value={technique}>
@@ -122,7 +122,7 @@ export function ExerciseRow({
                   value={exercise.restSeconds}
                   onChange={(event) => onChange({ ...exercise, restSeconds: event.target.value })}
                   inputMode="numeric"
-                  className="h-10 rounded-lg border border-border bg-surface-sunken px-2 text-sm text-text"
+                  className="h-10 rounded-field border border-border bg-surface-sunken px-2 text-sm text-text"
                 />
               </label>
 
@@ -132,7 +132,7 @@ export function ExerciseRow({
                   value={exercise.tempo}
                   onChange={(event) => onChange({ ...exercise, tempo: event.target.value })}
                   placeholder="3-1-1-0"
-                  className="h-10 rounded-lg border border-border bg-surface-sunken px-2 text-sm text-text"
+                  className="h-10 rounded-field border border-border bg-surface-sunken px-2 text-sm text-text"
                 />
               </label>
 
@@ -142,7 +142,7 @@ export function ExerciseRow({
                   value={exercise.notes}
                   onChange={(event) => onChange({ ...exercise, notes: event.target.value })}
                   rows={2}
-                  className="rounded-lg border border-border bg-surface-sunken p-2 text-sm text-text"
+                  className="rounded-field border border-border bg-surface-sunken p-2 text-sm text-text"
                 />
               </label>
             </div>

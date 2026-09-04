@@ -11,7 +11,7 @@ export function NotificationBell() {
   return (
     <Link
       to={notificationsPathFor(user?.role ?? 'STUDENT')}
-      className="relative flex size-touch items-center justify-center rounded-lg text-text-muted"
+      className="relative flex size-touch items-center justify-center rounded-field text-text-muted transition-colors hover:bg-white/[0.05] hover:text-text"
       aria-label={count > 0 ? `Notificações, ${count} não lidas` : 'Notificações'}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="currentColor">

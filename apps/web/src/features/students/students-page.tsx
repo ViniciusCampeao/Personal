@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { StudentSummaryDto } from '@pt/shared';
 import { Alert } from '@/components/ui/alert';
+import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,8 @@ import { useDebounced } from '@/hooks/use-debounced';
 import { formatRelativeDay } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
+import { PageHeader } from '@/components/app/page-header';
+import { segmentedClass } from '@/components/ui/segmented';
 import { InviteStudentPanel } from './invite-student-panel';
 import { listStudents, type StudentFilters } from './students-api';
 
@@ -48,12 +51,15 @@ export function StudentsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Alunos</h1>
-        <Button onClick={() => setInviting((open) => !open)}>
-          {inviting ? 'Fechar' : 'Convidar aluno'}
-        </Button>
-      </header>
+      <PageHeader
+        title="Alunos"
+        description="Quem você acompanha hoje, e há quanto tempo cada um não treina."
+        actions={
+          <Button onClick={() => setInviting((open) => !open)}>
+            {inviting ? 'Fechar' : 'Convidar aluno'}
+          </Button>
+        }
+      />
 
       {inviting ? <InviteStudentPanel onDone={() => setInviting(false)} /> : null}
 
@@ -72,11 +78,7 @@ export function StudentsPage() {
               type="button"
               aria-pressed={quick === item.key}
               onClick={() => setQuick(item.key)}
-              className={`min-h-touch rounded-lg border px-3 text-sm ${
-                quick === item.key
-                  ? 'border-accent bg-accent/10 text-text'
-                  : 'border-border bg-surface-raised text-text-muted'
-              }`}
+              className={segmentedClass(quick === item.key)}
             >
               {item.label}
             </button>
@@ -107,9 +109,9 @@ export function StudentsPage() {
 
 function StudentTable({ items }: { items: StudentSummaryDto[] }) {
   return (
-    <div className="overflow-x-auto rounded-card border border-border">
+    <div className="overflow-x-auto rounded-card border border-border bg-surface-raised shadow-card">
       <table className="w-full min-w-[44rem] text-left text-sm">
-        <thead className="bg-surface-raised text-xs uppercase tracking-wide text-text-subtle">
+        <thead className="border-b border-border text-xs uppercase tracking-wide text-text-subtle">
           <tr>
             <th className="px-4 py-3 font-medium">Aluno</th>
             <th className="px-4 py-3 font-medium">Programa</th>
@@ -120,17 +122,20 @@ function StudentTable({ items }: { items: StudentSummaryDto[] }) {
         </thead>
         <tbody className="divide-y divide-border">
           {items.map((student) => (
-            <tr key={student.id} className="hover:bg-surface-raised">
+            <tr key={student.id} className="transition-colors hover:bg-white/[0.03]">
               <td className="px-4 py-3">
-                <Link to={PATHS.trainerStudent(student.id)} className="flex flex-col">
-                  <span className="font-medium text-text">{student.name}</span>
-                  <span className="text-xs text-text-subtle">{student.email}</span>
+                <Link to={PATHS.trainerStudent(student.id)} className="flex items-center gap-3">
+                  <Avatar name={student.name} size="sm" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate font-medium text-text">{student.name}</span>
+                    <span className="truncate text-xs text-text-subtle">{student.email}</span>
+                  </span>
                 </Link>
               </td>
               <td className="px-4 py-3 text-text-muted">
                 {student.activeProgramName ?? <span className="text-warning">Sem programa</span>}
               </td>
-              <td className="px-4 py-3 text-text-muted">
+              <td className="px-4 py-3 tabular-nums text-text-muted">
                 {student.lastSessionAt ? formatRelativeDay(student.lastSessionAt) : 'Nunca'}
               </td>
               <td className="px-4 py-3">

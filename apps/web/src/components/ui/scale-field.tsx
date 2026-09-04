@@ -35,7 +35,7 @@ export function ScaleField({
             aria-checked={value === option}
             onClick={() => onChange(option)}
             className={cn(
-              'min-h-touch flex-1 rounded-lg border text-base font-semibold',
+              'min-h-touch flex-1 rounded-field border text-base font-semibold',
               value === option
                 ? 'border-accent bg-accent text-accent-fg'
                 : 'border-border bg-surface-sunken text-text-muted',

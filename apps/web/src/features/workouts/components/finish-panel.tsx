@@ -44,7 +44,7 @@ export function FinishPanel({ pendingSets, onCancel, onConfirm }: FinishPanelPro
               aria-pressed={effort === value}
               onClick={() => setEffort(value)}
               className={cn(
-                'min-h-touch rounded-lg border text-sm font-semibold',
+                'min-h-touch rounded-field border text-sm font-semibold',
                 effort === value
                   ? 'border-accent bg-accent text-accent-fg'
                   : 'border-border bg-surface-sunken text-text-muted',
@@ -69,7 +69,7 @@ export function FinishPanel({ pendingSets, onCancel, onConfirm }: FinishPanelPro
                 aria-label={`Humor ${value} de 5`}
                 onClick={() => setMood(value)}
                 className={cn(
-                  'size-touch flex-1 rounded-lg border text-xl',
+                  'size-touch flex-1 rounded-field border text-xl',
                   mood === value ? 'border-accent bg-accent/15' : 'border-border bg-surface-sunken',
                 )}
               >
@@ -86,7 +86,7 @@ export function FinishPanel({ pendingSets, onCancel, onConfirm }: FinishPanelPro
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           rows={3}
-          className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+          className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
         />
       </label>
 

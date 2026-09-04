@@ -7,6 +7,8 @@ import { formatDate, formatWeight } from '@/lib/format';
 import { PR_TYPE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { useAuth } from '@/features/auth/auth-context';
+import { PageHeader } from '@/components/app/page-header';
+import { segmentedClass } from '@/components/ui/segmented';
 import { AdherenceChart } from './components/adherence-chart';
 import { ExerciseChart } from './components/exercise-chart';
 import { VolumeChart } from './components/volume-chart';
@@ -43,8 +45,8 @@ export function ProgressPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-xl font-semibold">Progresso</h1>
+      <header className="flex flex-col gap-4">
+        <PageHeader title="Progresso" description="Aderência, volume e recordes pessoais." />
         {/* One row of filters above the charts — never inside a plot. */}
         <div className="flex gap-2">
           {RANGES.map((range) => (
@@ -53,11 +55,7 @@ export function ProgressPage() {
               type="button"
               aria-pressed={weeks === range.weeks}
               onClick={() => setWeeks(range.weeks)}
-              className={`min-h-touch flex-1 rounded-lg border px-3 text-sm ${
-                weeks === range.weeks
-                  ? 'border-accent bg-accent/10 text-text'
-                  : 'border-border bg-surface-raised text-text-muted'
-              }`}
+              className={segmentedClass(weeks === range.weeks, 'flex-1')}
             >
               {range.label}
             </button>
@@ -144,7 +142,7 @@ function ExerciseSection({ studentId }: { studentId: string | undefined }) {
           <select
             value={exerciseId ?? ''}
             onChange={(event) => setSelected(event.target.value)}
-            className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-sm text-text"
+            className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-sm text-text"
           >
             {options.map(([id, name]) => (
               <option key={id} value={id}>

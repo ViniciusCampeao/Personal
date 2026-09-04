@@ -7,9 +7,12 @@ import type {
   WorkoutTodayDto,
 } from '@pt/shared';
 import { Alert } from '@/components/ui/alert';
+import { Avatar } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatRelativeDay, formatWeight } from '@/lib/format';
+import { StatTile } from '@/components/ui/stat-tile';
+import { PageHeader } from '@/components/app/page-header';
+import { formatDate, formatRelativeDay, formatWeekday, formatWeight } from '@/lib/format';
 import { PR_TYPE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
@@ -49,7 +52,10 @@ export function TrainerDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <PageHeader
+        title="Dashboard"
+        description={`${formatWeekday(new Date())}, ${formatDate(new Date())}`}
+      />
 
       <Summary data={data} />
 
@@ -69,25 +75,20 @@ export function TrainerDashboardPage() {
  */
 function Summary({ data }: { data: DashboardResponseDto }) {
   const tiles = [
-    { label: 'Alunos em risco', value: data.atRiskStudents.length, tone: 'text-warning' },
+    { label: 'Alunos em risco', value: data.atRiskStudents.length, tone: 'warning' as const },
     {
       label: 'Treinos concluídos hoje',
       value: data.workoutsToday.filter((w) => w.status === 'COMPLETED').length,
-      tone: 'text-text',
+      tone: 'neutral' as const,
     },
-    { label: 'PRs recentes', value: data.recentPRs.length, tone: 'text-success' },
-    { label: 'Check-ins pendentes', value: data.pendingCheckIns.length, tone: 'text-text' },
+    { label: 'PRs recentes', value: data.recentPRs.length, tone: 'success' as const },
+    { label: 'Check-ins pendentes', value: data.pendingCheckIns.length, tone: 'neutral' as const },
   ];
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {tiles.map((tile) => (
-        <Card key={tile.label}>
-          <CardContent className="flex flex-col gap-1">
-            <span className="text-sm text-text-muted">{tile.label}</span>
-            <span className={`text-3xl font-semibold tabular-nums ${tile.tone}`}>{tile.value}</span>
-          </CardContent>
-        </Card>
+        <StatTile key={tile.label} label={tile.label} value={tile.value} tone={tile.tone} />
       ))}
     </div>
   );
@@ -133,13 +134,24 @@ function StudentRow({
     <li>
       <Link
         to={PATHS.trainerStudent(studentId)}
-        className="flex min-h-touch items-center justify-between gap-3 py-2"
+        // Pulled out to the card's padding edge so the hover band spans the whole row
+        // rather than floating inside it.
+        className="-mx-2 flex min-h-touch items-center gap-3 rounded-field px-2 py-2 transition-colors hover:bg-white/[0.03]"
       >
-        <span className="flex min-w-0 flex-col">
+        <Avatar name={name} size="sm" />
+        <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-medium">{name}</span>
           {detail ? <span className="text-xs text-text-subtle">{detail}</span> : null}
         </span>
         {trailing}
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="size-4 shrink-0 text-text-subtle"
+          fill="currentColor"
+        >
+          <path d="M9.29 6.71a1 1 0 0 0 0 1.41L13.17 12l-3.88 3.88a1 1 0 1 0 1.42 1.41l4.58-4.58a1 1 0 0 0 0-1.42L10.71 6.71a1 1 0 0 0-1.42 0Z" />
+        </svg>
       </Link>
     </li>
   );

@@ -97,7 +97,7 @@ export function TenantBrandingCard() {
           )}
 
           <div className="flex flex-col items-start gap-2">
-            <label className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface-raised px-4 text-sm font-medium text-text hover:border-border-strong">
+            <label className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-field border border-border bg-surface-raised px-4 text-sm font-medium text-text hover:border-border-strong">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4" fill="currentColor">
                 <path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1Z" />
               </svg>

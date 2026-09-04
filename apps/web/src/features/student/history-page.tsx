@@ -9,6 +9,7 @@ import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { useAuth } from '@/features/auth/auth-context';
 import { useSessionHistory } from '@/features/workouts/use-workouts';
+import { PageHeader } from '@/components/app/page-header';
 
 export function HistoryPage() {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ export function HistoryPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Histórico</h1>
+      <PageHeader title="Histórico" description="Todos os treinos que você já concluiu." />
 
       {history.isPending ? (
         <div className="flex flex-col gap-3">

@@ -20,7 +20,7 @@ export function Toaster() {
         <div
           key={toast.id}
           className={cn(
-            'pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg',
+            'pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-card border px-4 py-3 text-sm shadow-lg',
             variantClasses[toast.variant],
           )}
         >

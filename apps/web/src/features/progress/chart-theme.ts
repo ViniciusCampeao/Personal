@@ -3,31 +3,38 @@
  *
  * The categorical order is fixed and never cycled: a series keeps its colour when a
  * filter removes its neighbours. These six steps were validated as a set against this
- * app's surface (#0b1220) — lightness band, chroma floor, adjacent CVD ΔE ≥ 8, normal
- * vision ΔE ≥ 15 and ≥ 3:1 contrast all pass. Adding a seventh hue is not allowed:
- * anything past the sixth series folds into "Outros".
+ * app's surface (#050506) — lightness band, chroma floor, adjacent CVD ΔE ≥ 8 (worst
+ * pair 12.3, deutan), normal vision ΔE ≥ 15 (worst 22.3) and ≥ 3:1 contrast all pass.
+ * Adding a seventh hue is not allowed: anything past the sixth series folds into "Outros".
+ *
+ * Re-validate with the palette validator before touching a value — and note that the
+ * *order* is load-bearing, not just the hexes: the orange next to the gold collapses to
+ * ΔE 0.8 under deuteranopia, which is exactly why they sit at opposite ends of the list.
+ * Orange leads because the single-series accent is orange, and the brand is orange; the
+ * blue lead this replaced was what made every chart read as generic.
  */
 export const CATEGORICAL = [
-  '#3987e5',
-  '#d95926',
-  '#199e70',
-  '#c98500',
-  '#d55181',
-  '#008300',
+  '#dc7100',
+  '#5083e3',
+  '#00ac7d',
+  '#a964c8',
+  '#ab9100',
+  '#d45180',
 ] as const;
 
 export const MAX_SERIES = CATEGORICAL.length - 1;
 
 /** Single-series marks use the interface accent, not a categorical slot. */
-export const SERIES_ACCENT = '#3987e5';
+export const SERIES_ACCENT = '#ff8a1f';
 
+/** Mirrors the interface tokens in src/index.css — keep the two in sync. */
 export const CHART_INK = {
-  grid: '#1e2b45',
-  axis: '#6f7d97',
-  surface: '#0b1220',
-  surfaceRaised: '#111c33',
-  text: '#e8edf7',
-  textMuted: '#a3b0c8',
+  grid: '#1f1f23',
+  axis: '#737380',
+  surface: '#050506',
+  surfaceRaised: '#101013',
+  text: '#f4f4f5',
+  textMuted: '#a3a3ac',
 };
 
 export const AXIS_PROPS = {

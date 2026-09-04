@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
+import { PageHeader } from '@/components/app/page-header';
 import { createProgram, listPrograms } from './programs-api';
 
 /** Reusable programs (spec §8): a template has no student until it is duplicated. */
@@ -35,12 +36,15 @@ export function TemplatesPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Templates</h1>
-        <Button onClick={() => setCreating((open) => !open)}>
-          {creating ? 'Fechar' : 'Novo template'}
-        </Button>
-      </header>
+      <PageHeader
+        title="Templates"
+        description="Programas prontos para aplicar em qualquer aluno."
+        actions={
+          <Button onClick={() => setCreating((open) => !open)}>
+            {creating ? 'Fechar' : 'Novo template'}
+          </Button>
+        }
+      />
 
       {creating ? (
         <section className="flex flex-col gap-3 rounded-card border border-border bg-surface-raised p-4">

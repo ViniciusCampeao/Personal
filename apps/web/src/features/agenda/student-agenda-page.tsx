@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate, formatWeekday } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
+import { PageHeader } from '@/components/app/page-header';
 import { fetchAgendaEvents } from './agenda-api';
 
 const TYPE_LABELS: Record<AgendaEventType, string> = {
@@ -30,7 +31,7 @@ export function StudentAgendaPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-xl font-semibold">Agenda</h1>
+      <PageHeader title="Agenda" description="Treinos e compromissos marcados com seu personal." />
 
       {events.isPending ? (
         <Skeleton className="h-48" />

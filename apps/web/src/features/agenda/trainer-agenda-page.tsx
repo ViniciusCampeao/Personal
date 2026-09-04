@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { formatDate, formatWeekday } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { listStudents } from '@/features/students/students-api';
+import { PageHeader } from '@/components/app/page-header';
 import {
   createAgendaEvent,
   deleteAgendaEvent,
@@ -112,12 +113,15 @@ export function TrainerAgendaPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Agenda</h1>
-        <Button size="sm" onClick={() => setFormOpen((open) => !open)}>
-          {formOpen ? 'Cancelar' : 'Novo compromisso'}
-        </Button>
-      </header>
+      <PageHeader
+        title="Agenda"
+        description="Treinos e reuniões marcados com seus alunos."
+        actions={
+          <Button onClick={() => setFormOpen((open) => !open)}>
+            {formOpen ? 'Cancelar' : 'Novo compromisso'}
+          </Button>
+        }
+      />
 
       <div className="flex items-center gap-3">
         <Button size="sm" variant="secondary" onClick={() => setWeekOffset((o) => o - 1)}>
@@ -141,7 +145,7 @@ export function TrainerAgendaPage() {
                 <select
                   value={type}
                   onChange={(event) => setType(event.target.value as AgendaEventType)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 >
                   {Object.entries(TYPE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -155,7 +159,7 @@ export function TrainerAgendaPage() {
                 <select
                   value={studentId}
                   onChange={(event) => setStudentId(event.target.value)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 >
                   <option value="">— nenhum —</option>
                   {students.data?.items.map((student) => (
@@ -172,7 +176,7 @@ export function TrainerAgendaPage() {
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
               />
             </label>
 
@@ -183,7 +187,7 @@ export function TrainerAgendaPage() {
                   type="datetime-local"
                   value={startsAt}
                   onChange={(event) => setStartsAt(event.target.value)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 />
               </label>
               <label className="flex flex-1 flex-col gap-1.5">
@@ -192,7 +196,7 @@ export function TrainerAgendaPage() {
                   type="datetime-local"
                   value={endsAt}
                   onChange={(event) => setEndsAt(event.target.value)}
-                  className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+                  className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
                 />
               </label>
             </div>
@@ -203,7 +207,7 @@ export function TrainerAgendaPage() {
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={2}
-                className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text"
+                className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text"
               />
             </label>
 
@@ -259,7 +263,12 @@ export function TrainerAgendaPage() {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}{' '}
-                          · {event.status === 'SCHEDULED' ? 'Agendado' : event.status === 'DONE' ? 'Concluído' : 'Cancelado'}
+                          ·{' '}
+                          {event.status === 'SCHEDULED'
+                            ? 'Agendado'
+                            : event.status === 'DONE'
+                              ? 'Concluído'
+                              : 'Cancelado'}
                         </p>
                       </div>
                       {event.status === 'SCHEDULED' ? (

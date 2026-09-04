@@ -48,7 +48,7 @@ export function ChartFrame({
 export function ChartTooltipBox({ children }: { children: ReactNode }) {
   return (
     <div
-      className="rounded-lg border border-border px-3 py-2 text-xs shadow-lg"
+      className="rounded-field border border-border px-3 py-2 text-xs shadow-lg"
       style={{ background: CHART_INK.surface, color: CHART_INK.text }}
     >
       {children}

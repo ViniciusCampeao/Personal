@@ -18,6 +18,7 @@ import { apiFetch } from '@/lib/api';
 import { EQUIPMENT_LABELS, MOVEMENT_PATTERN_LABELS, MUSCLE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { uploadFile } from '@/lib/upload';
+import { segmentedClass } from '@/components/ui/segmented';
 
 const LOAD_TYPE_LABELS: Record<(typeof loadTypes)[number], string> = {
   EXTERNAL: 'Carga externa',
@@ -110,7 +111,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
               {...field}
               value={movementPattern}
               onChange={(event) => setPattern(event.target.value as typeof movementPattern)}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
             >
               {movementPatterns.map((option) => (
                 <option key={option} value={option}>
@@ -127,7 +128,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
               {...field}
               value={equipment}
               onChange={(event) => setEquipment(event.target.value as typeof equipment)}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
             >
               {equipments.map((option) => (
                 <option key={option} value={option}>
@@ -144,7 +145,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
               {...field}
               value={loadType}
               onChange={(event) => setLoadType(event.target.value as typeof loadType)}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
             >
               {loadTypes.map((option) => (
                 <option key={option} value={option}>
@@ -169,11 +170,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
               type="button"
               aria-pressed={primary.includes(muscle)}
               onClick={() => toggleMuscle(muscle)}
-              className={`min-h-touch rounded-lg border px-3 text-sm ${
-                primary.includes(muscle)
-                  ? 'border-accent bg-accent/10 text-text'
-                  : 'border-border bg-surface-sunken text-text-muted'
-              }`}
+              className={segmentedClass(primary.includes(muscle))}
             >
               {labelOf(MUSCLE_LABELS, muscle)}
             </button>
@@ -188,7 +185,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
             value={instructions}
             onChange={(event) => setInstructions(event.target.value)}
             rows={3}
-            className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text"
+            className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text"
           />
         )}
       </Field>
@@ -203,7 +200,7 @@ export function ExerciseFormPanel({ exercise, onDone }: ExerciseFormPanelProps) 
             type="file"
             accept="video/mp4,video/webm,video/quicktime"
             onChange={(event) => void handleVideo(event.target.files?.[0])}
-            className="text-sm text-text-muted file:mr-3 file:min-h-touch file:rounded-lg file:border file:border-border file:bg-surface-sunken file:px-4 file:text-sm file:text-text"
+            className="text-sm text-text-muted file:mr-3 file:min-h-touch file:rounded-field file:border file:border-border file:bg-surface-sunken file:px-4 file:text-sm file:text-text"
           />
         )}
       </Field>

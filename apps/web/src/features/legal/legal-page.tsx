@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { fetchLegalDocument } from '@/features/profile/me-api';
+import { PageHeader } from '@/components/app/page-header';
 
 /**
  * The text comes from the API (spec §10.8) so the version shown here is provably the
@@ -26,12 +27,10 @@ function LegalPage({ type }: { type: LegalDocumentDto['type'] }) {
 
   return (
     <article className="flex flex-col gap-5">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{query.data.title}</h1>
-        <p className="text-xs text-text-subtle">
-          Versão {query.data.version} · atualizado em {formatDate(query.data.updatedAt)}
-        </p>
-      </header>
+      <PageHeader
+        title={query.data.title}
+        description={`Versão ${query.data.version} · atualizado em ${formatDate(query.data.updatedAt)}`}
+      />
 
       <Markdown source={query.data.body} />
 

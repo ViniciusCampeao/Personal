@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDateTime } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { TenantBrandingCard } from '@/features/tenant/tenant-branding-card';
+import { PageHeader } from '@/components/app/page-header';
 import { fetchAdminUsers, fetchAuditLog } from './admin-api';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -18,7 +19,10 @@ const ROLE_LABELS: Record<string, string> = {
 export function AdminPage() {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Administração</h1>
+      <PageHeader
+        title="Administração"
+        description="Marca, contas e trilha de auditoria deste tenant."
+      />
       <TenantBrandingCard />
       <UsersCard />
       <AuditLogCard />
@@ -90,7 +94,11 @@ function AuditLogCard() {
               ))}
             </ul>
             {log.data!.nextCursor ? (
-              <Button size="sm" variant="secondary" onClick={() => setCursor(log.data!.nextCursor!)}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setCursor(log.data!.nextCursor!)}
+              >
                 Carregar mais
               </Button>
             ) : null}

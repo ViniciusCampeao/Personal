@@ -64,7 +64,7 @@ export function StudentOverviewTab() {
               {...field}
               value={status}
               onChange={(e) => setStatus(e.target.value as StudentDetailDto['status'])}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -84,7 +84,7 @@ export function StudentOverviewTab() {
               {...field}
               value={experienceLevel}
               onChange={(e) => setExperience(e.target.value as typeof experienceLevel)}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text"
             >
               {EXPERIENCE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -113,7 +113,7 @@ export function StudentOverviewTab() {
               value={privateNotes}
               onChange={(e) => setNotes(e.target.value)}
               rows={5}
-              className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           )}
         </Field>

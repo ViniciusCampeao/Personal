@@ -15,6 +15,7 @@ import {
   fetchVolume,
 } from '@/features/progress/progress-api';
 import { apiFetch } from '@/lib/api';
+import { segmentedClass } from '@/components/ui/segmented';
 import type { ProgressionSuggestionDto } from '@pt/shared';
 import { useStudent } from './use-student';
 
@@ -63,11 +64,7 @@ export function StudentProgressTab() {
             type="button"
             aria-pressed={weeks === option}
             onClick={() => setWeeks(option)}
-            className={`min-h-touch rounded-lg border px-3 text-sm ${
-              weeks === option
-                ? 'border-accent bg-accent/10 text-text'
-                : 'border-border bg-surface-raised text-text-muted'
-            }`}
+            className={segmentedClass(weeks === option)}
           >
             {option} semanas
           </button>
@@ -130,7 +127,7 @@ export function StudentProgressTab() {
               <select
                 value={exerciseId ?? ''}
                 onChange={(event) => setSelected(event.target.value)}
-                className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-sm text-text"
+                className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-sm text-text"
               >
                 {options.map(([id, name]) => (
                   <option key={id} value={id}>

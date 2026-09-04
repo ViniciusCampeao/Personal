@@ -71,10 +71,10 @@ export function InviteStudentPanel({ onDone }: { onDone: () => void }) {
         <img
           src={created.qrCodeDataUrl}
           alt="QR code do convite"
-          className="size-40 self-start rounded-lg bg-white p-2"
+          className="size-40 self-start rounded-field bg-white p-2"
         />
         <div className="flex flex-wrap items-center gap-2">
-          <code className="min-w-0 flex-1 truncate rounded-lg bg-surface-sunken px-3 py-2 text-xs">
+          <code className="min-w-0 flex-1 truncate rounded-field bg-surface-sunken px-3 py-2 text-xs">
             {created.url}
           </code>
           <Button

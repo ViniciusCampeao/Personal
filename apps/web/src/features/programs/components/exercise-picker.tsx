@@ -47,7 +47,7 @@ export function ExercisePicker({ onPick, onClose }: ExercisePickerProps) {
           value={muscle}
           onChange={(event) => setMuscle(event.target.value)}
           aria-label="Filtrar por músculo"
-          className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-sm text-text"
+          className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-sm text-text"
         >
           <option value="">Todos os músculos</option>
           {Object.entries(MUSCLE_LABELS).map(([value, label]) => (
@@ -67,7 +67,7 @@ export function ExercisePicker({ onPick, onClose }: ExercisePickerProps) {
               <button
                 type="button"
                 onClick={() => onPick(exercise)}
-                className="flex min-h-touch w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-surface"
+                className="flex min-h-touch w-full items-center gap-3 rounded-field px-3 text-left hover:bg-surface"
               >
                 {exercise.imageUrls[0] ? (
                   <img

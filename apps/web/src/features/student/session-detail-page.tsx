@@ -8,6 +8,7 @@ import { SET_TYPE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { BackLink } from '@/components/app/back-link';
 import { fetchSession } from '@/features/workouts/workouts-api';
+import { PageHeader } from '@/components/app/page-header';
 
 export function SessionDetailPage() {
   const { id = '' } = useParams();
@@ -26,12 +27,16 @@ export function SessionDetailPage() {
       <BackLink label="Voltar" />
 
       <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">{formatDateTime(data.startedAt)}</h1>
-        <p className="text-sm text-text-muted">
-          {data.durationSeconds ? `${formatMinutes(data.durationSeconds)} · ` : ''}
-          {data.totalVolumeKg ? `volume ${formatWeight(data.totalVolumeKg)}` : 'sem volume'}
-          {data.perceivedEffort ? ` · esforço ${data.perceivedEffort}/10` : ''}
-        </p>
+        <PageHeader
+          title={formatDateTime(data.startedAt)}
+          description={
+            <span className="tabular-nums">
+              {data.durationSeconds ? `${formatMinutes(data.durationSeconds)} · ` : ''}
+              {data.totalVolumeKg ? `volume ${formatWeight(data.totalVolumeKg)}` : 'sem volume'}
+              {data.perceivedEffort ? ` · esforço ${data.perceivedEffort}/10` : ''}
+            </span>
+          }
+        />
         {data.notes ? <p className="text-sm text-text-muted">{data.notes}</p> : null}
       </header>
 

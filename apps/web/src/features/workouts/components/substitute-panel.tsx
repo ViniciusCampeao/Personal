@@ -85,7 +85,7 @@ export function SubstitutePanel({
               <button
                 type="button"
                 onClick={() => onConfirm(option, reason.trim() || null)}
-                className="flex min-h-touch w-full items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised px-4 py-2 text-left active:bg-surface-sunken"
+                className="flex min-h-touch w-full items-center justify-between gap-3 rounded-field border border-border bg-surface-raised px-4 py-2 text-left active:bg-surface-sunken"
               >
                 <span className="font-medium">{option.name}</span>
                 <span className="shrink-0 text-xs text-text-subtle">

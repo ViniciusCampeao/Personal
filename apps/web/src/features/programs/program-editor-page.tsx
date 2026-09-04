@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { BackLink } from '@/components/app/back-link';
-import { cn } from '@/lib/cn';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
+import { segmentedClass } from '@/components/ui/segmented';
 import { DayEditor } from './components/day-editor';
 import {
   activateProgram,
@@ -158,12 +158,7 @@ export function ProgramEditorPage() {
                 type="button"
                 onClick={() => setSelectedDayId(day.id)}
                 aria-current={currentDay?.id === day.id ? 'true' : undefined}
-                className={cn(
-                  'min-h-touch whitespace-nowrap rounded-lg border px-4 text-sm',
-                  currentDay?.id === day.id
-                    ? 'border-accent bg-accent/10 text-text'
-                    : 'border-border bg-surface-raised text-text-muted',
-                )}
+                className={segmentedClass(currentDay?.id === day.id, 'whitespace-nowrap px-4')}
               >
                 {day.label}
                 <span className="ml-2 text-xs text-text-subtle">{day.exercises.length} ex.</span>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ExerciseDto } from '@pt/shared';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,6 +20,7 @@ export function ExerciseNameField({ exercise }: ExerciseNameFieldProps) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(exercise.name);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const rename = useMutation({
     mutationFn: (value: string) => renameExercise(exercise.id, value),
@@ -44,6 +45,13 @@ export function ExerciseNameField({ exercise }: ExerciseNameFieldProps) {
     rename.mutate(trimmed);
   }
 
+  // Focus moves here because the trainer just clicked "renomear" and this input replaced
+  // the label they clicked — an effect rather than `autoFocus`, which the a11y rule bans
+  // for the page-load case it cannot tell apart from this one.
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
   if (editing) {
     return (
       <form
@@ -54,7 +62,7 @@ export function ExerciseNameField({ exercise }: ExerciseNameFieldProps) {
         }}
       >
         <input
-          autoFocus
+          ref={inputRef}
           value={name}
           onChange={(event) => setName(event.target.value)}
           onBlur={save}

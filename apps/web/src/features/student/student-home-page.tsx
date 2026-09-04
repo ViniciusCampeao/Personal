@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { formatDate, formatWeight } from '@/lib/format';
+import { formatDate, formatWeekday, formatWeight } from '@/lib/format';
 import { PR_TYPE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
@@ -15,6 +15,7 @@ import { useAuth } from '@/features/auth/auth-context';
 import { fetchCurrentCheckIn } from '@/features/checkins/checkins-api';
 import { useActiveSession, useToday } from '@/features/workouts/use-workouts';
 import { startSession } from '@/features/workouts/workout-store';
+import { PageHeader } from '@/components/app/page-header';
 
 export function StudentHomePage() {
   const { user } = useAuth();
@@ -34,7 +35,10 @@ export function StudentHomePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-xl font-semibold">Olá, {user?.name?.split(' ')[0]}</h1>
+      <PageHeader
+        title={`Olá, ${user?.name?.split(' ')[0] ?? ''}`}
+        description={`${formatWeekday(new Date())}, ${formatDate(new Date())}`}
+      />
 
       <Card>
         <CardContent className="flex flex-col gap-3">
@@ -76,8 +80,16 @@ export function StudentHomePage() {
 
       <CheckInCard />
 
-      <NavCard to={PATHS.studentDiet} title="Dieta" description="Veja o plano montado pelo seu treinador." />
-      <NavCard to={PATHS.studentAgenda} title="Agenda" description="Seus próximos treinos e reuniões." />
+      <NavCard
+        to={PATHS.studentDiet}
+        title="Dieta"
+        description="Veja o plano montado pelo seu treinador."
+      />
+      <NavCard
+        to={PATHS.studentAgenda}
+        title="Agenda"
+        description="Seus próximos treinos e reuniões."
+      />
 
       <AdherenceCard studentId={user?.id} />
       <LastRecordCard studentId={user?.id} />

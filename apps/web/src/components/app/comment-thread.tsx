@@ -73,7 +73,7 @@ export function CommentThread({
           onChange={(event) => setBody(event.target.value)}
           rows={2}
           placeholder={placeholder}
-          className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+          className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
         />
         <Button
           size="md"

@@ -13,10 +13,8 @@ export function StudentLayout() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur">
-        <span className="text-base font-semibold">
-          <TenantBrand />
-        </span>
+      <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur">
+        <TenantBrand className="min-w-0" />
         <div className="flex items-center gap-2">
           <SyncIndicator />
           <NotificationBell />

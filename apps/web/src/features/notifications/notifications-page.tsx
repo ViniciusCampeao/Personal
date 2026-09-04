@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRelativeDay } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
+import { PageHeader } from '@/components/app/page-header';
 import { fetchNotifications, markNotificationRead } from './notifications-api';
 import { PushToggle } from './push-toggle';
 import { notificationKeys } from './use-notifications';
@@ -29,7 +30,10 @@ export function NotificationsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Notificações</h1>
+      <PageHeader
+        title="Notificações"
+        description="Avisos do seu treinador e lembretes de treino."
+      />
 
       <PushToggle />
 

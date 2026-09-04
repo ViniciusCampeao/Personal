@@ -1,52 +1,66 @@
 @import 'tailwindcss';
 
 /**
- * Semantic tokens. Components reference these, never raw `slate-*` — that is what keeps
- * a light theme (not required by the spec) a matter of adding one block here instead of
- * touching every component.
+ * Semantic tokens. Components reference these, never raw `slate-*` — that is what keeps a
+ * re-skin (like this one) a matter of editing this block instead of touching every screen.
  *
- * `--color-brand-950` is duplicated in three places that must stay in sync: the PWA
- * manifest `theme_color`/`background_color` (vite.config.ts) and `<meta name="theme-color">`
+ * Palette direction: the brand mark is a black disc with a red cap and a gold chain, so
+ * the app is built the same way — a ground that is as close to black as a screen can go,
+ * with colour spent only where it carries meaning: the CTA, progress, the selected thing,
+ * and the four states. Everything structural is a hairline.
+ *
+ * `--color-surface` is duplicated in two places that must stay in sync: the PWA manifest
+ * `theme_color`/`background_color` (vite.config.ts) and `<meta name="theme-color">`
  * (index.html).
  */
 @theme {
-  --color-brand-50: #f1f5fb;
-  --color-brand-100: #e2e9f5;
-  --color-brand-200: #c5d3ea;
-  --color-brand-300: #9db4d9;
-  --color-brand-400: #6e8ec2;
-  --color-brand-500: #4c6da8;
-  --color-brand-600: #3a548a;
-  --color-brand-700: #2e4370;
-  --color-brand-800: #1f2e4f;
-  --color-brand-900: #111c33;
-  --color-brand-950: #0f172a;
+  /*
+   * Ground. Not pure #000: an OLED phone clips the difference between a black card and a
+   * black page, and the whole layout depends on that difference being visible. Sunken IS
+   * pure black — it only ever appears inset inside something lighter.
+   */
+  --color-surface: #050506;
+  --color-surface-raised: #101013;
+  --color-surface-sunken: #000000;
 
-  --color-surface: #0b1220;
-  --color-surface-raised: #111c33;
-  --color-surface-sunken: #070c16;
+  /* Hairlines do the structural work here — there are no heavy shadows to lean on. */
+  --color-border: #1f1f23;
+  --color-border-strong: #34343b;
 
-  --color-border: #1e2b45;
-  --color-border-strong: #33456b;
+  --color-text: #f4f4f5;
+  --color-text-muted: #a3a3ac;
+  --color-text-subtle: #737380;
 
-  --color-text: #e8edf7;
-  --color-text-muted: #a3b0c8;
-  --color-text-subtle: #6f7d97;
+  /*
+   * The logo's orange — sitting between the cap's red and the chain's gold. It has to
+   * survive a phone at arm's length in a gym, and taking the red itself would have made
+   * every primary button look like a destructive one. Fills carry near-black text: at
+   * this luminance a light foreground would be unreadable.
+   */
+  --color-accent: #ff8a1f;
+  --color-accent-strong: #f06a05;
+  --color-accent-fg: #1a0800;
 
-  /* The CTA has to survive a phone screen at arm's length in a gym. */
-  --color-accent: #3b82f6;
-  /* Fill for buttons: accent itself is only 3.7:1 under near-white text. */
-  --color-accent-strong: #2563eb;
-  --color-accent-fg: #f8fafc;
+  /* States. Warning is pushed yellow and danger pink, so neither is mistaken for accent. */
+  --color-success: #2fd48a;
+  --color-success-fg: #032418;
+  --color-warning: #ffc53d;
+  --color-warning-fg: #241800;
+  --color-danger: #ff4d5e;
+  --color-danger-fg: #2a0409;
 
-  --color-success: #22c55e;
-  --color-success-fg: #052e16;
-  --color-warning: #f59e0b;
-  --color-warning-fg: #451a03;
-  --color-danger: #ef4444;
-  --color-danger-fg: #fef2f2;
+  --radius-card: 0.75rem;
+  --radius-field: 0.625rem;
 
-  --radius-card: 0.875rem;
+  /*
+   * Barely-there lift. On a near-black ground a big shadow just looks like grey smudge;
+   * what separates a card is the hairline plus a tight contact shadow.
+   */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -20px rgb(0 0 0 / 0.8);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
 
   /* Spec §12: touch targets >= 48px; the "concluir série" button is 56px (§8). */
   --spacing-touch: 3rem;
@@ -66,5 +80,16 @@ body,
 body {
   /* Room for the home indicator on iOS when running standalone. */
   padding-bottom: env(safe-area-inset-bottom);
+  font-family: var(--font-sans);
   @apply bg-surface text-text antialiased;
+}
+
+/*
+ * Headings tighten as they grow: default tracking is tuned for body copy and looks slack
+ * at display sizes.
+ */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }

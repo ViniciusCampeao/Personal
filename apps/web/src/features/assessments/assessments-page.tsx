@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate, formatPercent, formatWeight } from '@/lib/format';
 import { problemMessage } from '@/lib/problem';
 import { useAuth } from '@/features/auth/auth-context';
+import { PageHeader } from '@/components/app/page-header';
 import { fetchAssessments } from './assessments-api';
 
 /** Timeline of the physical assessments the trainer recorded (spec §8). */
@@ -21,7 +22,10 @@ export function AssessmentsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Avaliações</h1>
+      <PageHeader
+        title="Avaliações"
+        description="Medidas, dobras e composição corporal ao longo do tempo."
+      />
 
       {query.isPending ? (
         <Skeleton className="h-40" />

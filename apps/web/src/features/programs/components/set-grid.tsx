@@ -42,7 +42,7 @@ export function SetGrid({ sets, onChange }: SetGridProps) {
                   onChange={(event) =>
                     patch(index, { setType: event.target.value as EditorSet['setType'] })
                   }
-                  className="h-10 w-full rounded-lg border border-border bg-surface-sunken px-2 text-sm text-text"
+                  className="h-10 w-full rounded-field border border-border bg-surface-sunken px-2 text-sm text-text"
                 >
                   {SET_TYPES.map((type) => (
                     <option key={type} value={type}>
@@ -129,7 +129,7 @@ function Cell({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       inputMode="decimal"
-      className="h-10 w-16 rounded-lg border border-border bg-surface-sunken px-2 text-center text-sm text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+      className="h-10 w-16 rounded-field border border-border bg-surface-sunken px-2 text-center text-sm text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
     />
   );
 }

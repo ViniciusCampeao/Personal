@@ -73,18 +73,18 @@ export function StudentDietTab() {
         notes: notes.trim() || undefined,
         meals: meals
           .filter((meal) => meal.name.trim() !== '')
-          .map(
-            (meal): DietMealInput => ({
-              name: meal.name.trim(),
-              time: meal.time.trim() || undefined,
-              items: meal.itemsText
-                .split('\n')
-                .map((line) => line.trim())
-                .filter(Boolean),
-            }),
-          ),
+          .map((meal): DietMealInput => ({
+            name: meal.name.trim(),
+            time: meal.time.trim() || undefined,
+            items: meal.itemsText
+              .split('\n')
+              .map((line) => line.trim())
+              .filter(Boolean),
+          })),
       };
-      return activePlan ? updateDietPlan(activePlan.id, payload) : createDietPlan(student.id, payload);
+      return activePlan
+        ? updateDietPlan(activePlan.id, payload)
+        : createDietPlan(student.id, payload);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['students', student.id, 'diet-plans'] });
@@ -121,7 +121,7 @@ export function StudentDietTab() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ex.: Dieta de cutting"
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           </label>
 
@@ -130,26 +130,29 @@ export function StudentDietTab() {
             <input
               value={goal}
               onChange={(event) => setGoal(event.target.value)}
-              className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           </label>
 
           <div className="flex flex-col gap-3">
             <span className="text-sm font-medium">Refeições</span>
             {meals.map((meal, index) => (
-              <div key={index} className="flex flex-col gap-2 rounded-lg border border-border p-3">
+              <div
+                key={index}
+                className="flex flex-col gap-2 rounded-field border border-border p-3"
+              >
                 <div className="flex gap-2">
                   <input
                     value={meal.name}
                     onChange={(event) => updateMeal(index, { name: event.target.value })}
                     placeholder="Nome (ex.: Café da manhã)"
-                    className="min-h-touch flex-1 rounded-lg border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+                    className="min-h-touch flex-1 rounded-field border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
                   />
                   <input
                     value={meal.time}
                     onChange={(event) => updateMeal(index, { time: event.target.value })}
                     placeholder="Horário"
-                    className="min-h-touch w-28 rounded-lg border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+                    className="min-h-touch w-28 rounded-field border border-border bg-surface-sunken px-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
                   />
                 </div>
                 <textarea
@@ -157,7 +160,7 @@ export function StudentDietTab() {
                   onChange={(event) => updateMeal(index, { itemsText: event.target.value })}
                   rows={3}
                   placeholder={'Um item por linha, ex.:\n2 ovos\naveia 40g'}
-                  className="rounded-lg border border-border bg-surface-sunken p-3 text-sm text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+                  className="rounded-field border border-border bg-surface-sunken p-3 text-sm text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
                 />
                 <Button
                   size="sm"
@@ -185,7 +188,7 @@ export function StudentDietTab() {
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               rows={2}
-              className="rounded-lg border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
+              className="rounded-field border border-border bg-surface-sunken p-3 text-base text-text focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-accent"
             />
           </label>
 

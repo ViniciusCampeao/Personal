@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { isApiError, problemMessage } from '@/lib/problem';
 import { homePathFor } from '@/routes/paths';
+import { PageHeader } from '@/components/app/page-header';
 import { useAuth } from './auth-context';
 
 function loginErrorMessage(error: unknown): string {
@@ -51,10 +52,7 @@ export function LoginPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Entrar</h1>
-        <p className="text-sm text-text-muted">Acesse sua conta para ver seus treinos.</p>
-      </div>
+      <PageHeader title="Entrar" description="Acesse sua conta para ver seus treinos." />
 
       {formError ? <Alert variant="error">{formError}</Alert> : null}
 

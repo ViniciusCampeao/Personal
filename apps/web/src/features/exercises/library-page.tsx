@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounced } from '@/hooks/use-debounced';
 import { EQUIPMENT_LABELS, MOVEMENT_PATTERN_LABELS, MUSCLE_LABELS, labelOf } from '@/lib/labels';
 import { problemMessage } from '@/lib/problem';
+import { PageHeader } from '@/components/app/page-header';
+import { segmentedClass } from '@/components/ui/segmented';
 import { ExerciseFormPanel } from './exercise-form-panel';
 import { ExerciseNameField } from './exercise-name-field';
 import { listExercises } from './exercises-api';
@@ -41,12 +43,15 @@ export function ExerciseLibraryPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Biblioteca</h1>
-        <Button onClick={() => setEditing(editing ? null : 'new')}>
-          {editing ? 'Fechar' : 'Novo exercício'}
-        </Button>
-      </header>
+      <PageHeader
+        title="Biblioteca"
+        description="Exercícios disponíveis para montar programas."
+        actions={
+          <Button onClick={() => setEditing(editing ? null : 'new')}>
+            {editing ? 'Fechar' : 'Novo exercício'}
+          </Button>
+        }
+      />
 
       {editing ? (
         <ExerciseFormPanel
@@ -68,7 +73,7 @@ export function ExerciseLibraryPage() {
           value={muscle}
           onChange={(event) => setMuscle(event.target.value)}
           aria-label="Filtrar por músculo"
-          className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-sm text-text"
+          className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-sm text-text"
         >
           <option value="">Músculo</option>
           {Object.entries(MUSCLE_LABELS).map(([value, label]) => (
@@ -81,7 +86,7 @@ export function ExerciseLibraryPage() {
           value={equipment}
           onChange={(event) => setEquipment(event.target.value)}
           aria-label="Filtrar por equipamento"
-          className="min-h-touch rounded-lg border border-border bg-surface-sunken px-3 text-sm text-text"
+          className="min-h-touch rounded-field border border-border bg-surface-sunken px-3 text-sm text-text"
         >
           <option value="">Equipamento</option>
           {Object.entries(EQUIPMENT_LABELS).map(([value, label]) => (
@@ -97,11 +102,7 @@ export function ExerciseLibraryPage() {
               type="button"
               aria-pressed={scope === option.value}
               onClick={() => setScope(option.value)}
-              className={`min-h-touch rounded-lg border px-3 text-sm ${
-                scope === option.value
-                  ? 'border-accent bg-accent/10 text-text'
-                  : 'border-border bg-surface-raised text-text-muted'
-              }`}
+              className={segmentedClass(scope === option.value)}
             >
               {option.label}
             </button>
@@ -130,7 +131,7 @@ export function ExerciseLibraryPage() {
                       src={exercise.imageUrls[0]}
                       alt=""
                       loading="lazy"
-                      className="h-32 w-full rounded-lg border border-border bg-surface-sunken object-cover"
+                      className="h-32 w-full rounded-field border border-border bg-surface-sunken object-cover"
                     />
                   ) : null}
                   <div className="flex items-start justify-between gap-2">

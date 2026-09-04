@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter @pt/shared build && pnpm -r test",
     "db:generate": "pnpm --filter @pt/api prisma:generate",
     "db:migrate": "pnpm --filter @pt/api prisma:migrate",
     "db:deploy": "pnpm --filter @pt/api prisma:deploy",

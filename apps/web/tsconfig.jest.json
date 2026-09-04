@@ -7,7 +7,12 @@
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "isolatedModules": false,
-    "types": ["node", "jest", "@testing-library/jest-dom"]
+    // WebWorker is dropped (the app config needs it for src/sw.ts, tests never run it).
+    // With both DOM and WebWorker in scope the global `navigator` resolves to
+    // WorkerNavigator, and every module touching `navigator.clipboard` fails to compile.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client", "jest", "@testing-library/jest-dom"]
   },
-  "include": ["src", "jest.setup.ts"]
+  "include": ["src", "jest.setup.ts"],
+  "exclude": ["src/sw.ts"]
 }

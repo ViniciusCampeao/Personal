@@ -97,6 +97,10 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://${POSTGRES_USER:-personal}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-personal}?schema=public
       REDIS_URL: redis://redis:6379
+      # Both must be passed: CORS_ORIGINS is derived from it, but the API also builds
+      # invite links from PUBLIC_APP_URL itself — left unset in the container it fell back
+      # to the schema default and handed out http://localhost:8080/convite/<token>.
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8080}
       CORS_ORIGINS: ${PUBLIC_APP_URL:-http://localhost:8080}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}

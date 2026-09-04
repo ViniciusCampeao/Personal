@@ -18,7 +18,11 @@ import { problemMessage } from '@/lib/problem';
 import { PATHS } from '@/routes/paths';
 import { fetchDashboard } from './trainer-api';
 
-/** Spec §6: the four criteria that put a student on the risk list, in the trainer's words. */
+/**
+ * Spec §6: the four criteria that flag a student, in the trainer's words. These chips are
+ * the whole point of the panel — "em risco" as a heading only raised the question "risk of
+ * what?", so the heading states there is something to look at and each chip says what.
+ */
 const RISK_LABELS: Record<RiskReason, string> = {
   NO_SESSION_10_DAYS: 'Sem treinar há 10 dias',
   LOW_ADHERENCE: 'Aderência baixa',
@@ -75,7 +79,7 @@ export function TrainerDashboardPage() {
  */
 function Summary({ data }: { data: DashboardResponseDto }) {
   const tiles = [
-    { label: 'Alunos em risco', value: data.atRiskStudents.length, tone: 'warning' as const },
+    { label: 'Alunos com pendência', value: data.atRiskStudents.length, tone: 'warning' as const },
     {
       label: 'Treinos concluídos hoje',
       value: data.workoutsToday.filter((w) => w.status === 'COMPLETED').length,
@@ -159,7 +163,7 @@ function StudentRow({
 
 function AtRiskPanel({ students }: { students: AtRiskStudentDto[] }) {
   return (
-    <Panel title="Alunos em risco" empty="Ninguém em risco no momento.">
+    <Panel title="Alunos com pendência" empty="Nenhuma pendência no momento.">
       {students.map((student) => (
         <StudentRow
           key={student.studentId}

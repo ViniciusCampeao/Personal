@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
  * figures — and the label is the caption under it. The previous order (small label first,
  * number second) made four tiles read as four sentences instead of four numbers.
  *
- * `tone` only *activates* when the value is non-zero: "0 alunos em risco" is good news
+ * `tone` only *activates* when the value is non-zero: "0 alunos com pendência" is good news
  * and must not be painted as a warning.
  */
 export function StatTile({

@@ -147,6 +147,25 @@ describe('Exercises (e2e)', () => {
       },
     });
 
+    // Chest only as a SECONDARY muscle — the case that used to leak into the "Peito" filter.
+    await prisma.exercise.create({
+      data: {
+        tenantId: null,
+        name: `${prefix} Desenvolvimento Barra`,
+        slug: `${prefix}-desenvolvimento-barra`,
+        movementPattern: 'VERTICAL_PUSH',
+        equipment: 'BARBELL',
+        muscles: {
+          createMany: {
+            data: [
+              { muscle: 'SHOULDERS', role: 'PRIMARY' },
+              { muscle: 'CHEST', role: 'SECONDARY' },
+            ],
+          },
+        },
+      },
+    });
+
     const otherCustom = await prisma.exercise.create({
       data: {
         tenantId: otherTenantId,
@@ -197,6 +216,24 @@ describe('Exercises (e2e)', () => {
       expect(res.body.items[0].name).toBe(`${prefix} Supino Inclinado Halteres`);
     });
 
+    it('filters by the muscle an exercise targets, not the ones it merely assists', async () => {
+      // The barbell shoulder press lists the chest as a synergist; a trainer filtering by
+      // "Peito" is not asking for it.
+      const res = await request(app.getHttpServer())
+        .get(`/api/v1/exercises?q=${encodeURIComponent(prefix)}&muscle=CHEST&scope=global&limit=50`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(200);
+
+      const names = res.body.items.map((e: { name: string }) => e.name);
+      expect(names).toEqual(
+        expect.arrayContaining([
+          `${prefix} Supino Reto Barra`,
+          `${prefix} Supino Inclinado Halteres`,
+        ]),
+      );
+      expect(names).not.toContain(`${prefix} Desenvolvimento Barra`);
+    });
+
     it('paginates with a cursor', async () => {
       const first = await request(app.getHttpServer())
         .get(`/api/v1/exercises?q=${encodeURIComponent(prefix)}&scope=global&limit=2`)
@@ -211,13 +248,14 @@ describe('Exercises (e2e)', () => {
         )
         .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
-      expect(second.body.items).toHaveLength(1);
+      // Four global fixtures carry this prefix, so the second page is the last one.
+      expect(second.body.items).toHaveLength(2);
       expect(second.body.nextCursor).toBeNull();
 
       const allNames = [...first.body.items, ...second.body.items].map(
         (e: { name: string }) => e.name,
       );
-      expect(new Set(allNames).size).toBe(3);
+      expect(new Set(allNames).size).toBe(4);
     });
 
     it("does not leak another tenant's custom exercises under scope=all", async () => {

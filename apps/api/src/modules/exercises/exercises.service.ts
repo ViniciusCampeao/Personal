@@ -81,7 +81,11 @@ export class ExercisesService {
       isActive: true,
       ...(query.equipment && { equipment: query.equipment }),
       ...(query.pattern && { movementPattern: query.pattern }),
-      ...(query.muscle && { muscles: { some: { muscle: query.muscle } } }),
+      // PRIMARY only: filtering by "Peito" means chest exercises, not every exercise the
+      // chest assists in. Matching secondaries too put the barbell shoulder press under
+      // Peito (the dataset lists the chest as one of its synergists) and buried the actual
+      // chest work. `/substitutes` already reasons about primaries only.
+      ...(query.muscle && { muscles: { some: { muscle: query.muscle, role: 'PRIMARY' } } }),
       ...(query.q && { name: { contains: query.q, mode: 'insensitive' } }),
     };
 

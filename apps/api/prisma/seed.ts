@@ -20,8 +20,11 @@ function requireEnv(name: string, fallback: string): string {
 }
 
 async function main(): Promise<void> {
-  const tenantSlug = requireEnv('SEED_TENANT_SLUG', 'demo');
-  const tenantName = requireEnv('SEED_TENANT_NAME', 'Academia Demo');
+  const tenantSlug = requireEnv('SEED_TENANT_SLUG', 'joao-rodrigues');
+  const tenantName = requireEnv(
+    'SEED_TENANT_NAME',
+    'João Rodrigues — Personal Trainer e Consultoria Esportiva',
+  );
   const trainerEmail = requireEnv('SEED_TRAINER_EMAIL', 'trainer@demo.local');
   const trainerPassword = requireEnv('SEED_TRAINER_PASSWORD', DEFAULT_DEV_PASSWORD);
   const studentPassword = requireEnv('SEED_STUDENT_PASSWORD', DEFAULT_DEV_PASSWORD);
@@ -41,7 +44,7 @@ async function main(): Promise<void> {
     create: {
       tenantId: tenant.id,
       email: trainerEmail,
-      name: 'Vinícius Personal',
+      name: 'João Rodrigues',
       phone: '+5541999990000',
       role: 'TRAINER',
       status: 'ACTIVE',

@@ -15,7 +15,7 @@ cp .env.example .env          # ajuste as senhas
 pnpm install
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis minio minio-init
 pnpm db:migrate
-pnpm db:seed                  # cria tenant demo + trainer + 2 alunos
+pnpm db:seed                  # cria o tenant do João + trainer + 2 alunos
 pnpm dev                      # API em :3000, web em :5173
 ```
 

@@ -110,6 +110,21 @@ GET /health         liveness — usado pelo healthcheck do container
 GET /health/ready   readiness — pinga Postgres e Redis
 ```
 
+## Marca
+
+O app sai da caixa com a marca do **João Rodrigues — Personal Trainer e Consultoria
+Esportiva**: é o nome no manifesto do PWA, no `<title>`, no seed do tenant e a arte de
+todos os ícones.
+
+Os dois arquivos que mandam nisso são `apps/web/src/assets/logo.png` (o selo inteiro) e
+`apps/web/src/assets/logo-mark.png` (só a cabeça, recortada em disco, para os tamanhos em
+que as letras do anel viram borrão). O app importa os dois e `pnpm --filter @pt/web icons`
+gera a partir deles todo o conjunto em `public/` — favicon, apple-touch, PWA e maskable.
+Para trocar de marca: substitua os dois PNGs, rode o comando e ajuste `src/lib/brand.ts`.
+
+Isso é o padrão do produto, não um travamento: cada tenant continua podendo subir nome e
+logo próprios em Perfil → Marca, e aí o app inteiro passa a mostrar os dele.
+
 ## Credenciais do seed
 
 | Papel   | E-mail               | Senha         |

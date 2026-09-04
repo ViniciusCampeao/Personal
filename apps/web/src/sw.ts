@@ -86,7 +86,9 @@ self.addEventListener('push', (event) => {
     // A malformed payload still deserves a notification — permission was granted.
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title ?? 'Treino', {
+    // Falls back to the brand name (src/lib/brand.ts) — inlined rather than imported so
+    // the worker bundle stays free of the app's asset graph.
+    self.registration.showNotification(payload.title ?? 'João Rodrigues', {
       body: payload.body ?? '',
       icon: '/pwa-192x192.png',
       badge: '/pwa-192x192.png',

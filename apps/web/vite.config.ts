@@ -21,20 +21,22 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-32x32.png', 'favicon-192x192.png', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
-        name: 'Plataforma de Personal Trainer',
-        short_name: 'Treino',
-        description: 'Treinos, progressão e avaliação física.',
+        name: 'João Rodrigues — Personal Trainer e Consultoria Esportiva',
+        // Android gives the home-screen label ~12 characters before truncating.
+        short_name: 'JR Treino',
+        description: 'Treinos, progressão e avaliação física com João Rodrigues.',
         lang: 'pt-BR',
         dir: 'ltr',
         start_url: '/',
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0f172a',
-        theme_color: '#0f172a',
+        // Kept in sync with `--color-surface` (src/index.css) and the `theme-color` meta.
+        background_color: '#050506',
+        theme_color: '#050506',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
